@@ -55,8 +55,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .irow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bdr);}
 .irow:last-child{border-bottom:none;}
 .irl{flex:1;font-size:14px;}
-.inum{width:120px;padding:8px 10px;background:var(--sur);border:1.5px solid var(--bdr);border-radius:9px;color:var(--tx);font-family:inherit;font-size:15px;font-weight:700;outline:none;text-align:right;}
+.inum{width:120px;padding:8px 10px;background:var(--sur);border:1.5px solid var(--bdr);border-radius:9px;color:var(--tx);font-family:inherit;font-size:15px;font-weight:700;outline:none;text-align:right;-moz-appearance:textfield;}
 .inum:focus{border-color:var(--B);}
+.inum::-webkit-outer-spin-button,.inum::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .srow{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--bdr);}
 .srow:last-child{border-bottom:none;}
 .sbtn{padding:5px 10px;border-radius:7px;border:none;font-family:inherit;font-weight:700;font-size:11px;cursor:pointer;min-width:74px;text-align:center;}
@@ -180,6 +181,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   </div>
   <div class="tabs">
     <button class="tab on" id="it-branches"   onclick="iTab(this,'branches')">🏪 Branches</button>
+    <button class="tab"    id="it-categories" onclick="iTab(this,'categories')">📂 Categories</button>
     <button class="tab"    id="it-settings"   onclick="iTab(this,'settings')">⚙️ Settings</button>
     <button class="tab"    id="it-data"       onclick="iTab(this,'data')">💾 Data</button>
     <button class="tab"    id="it-diagnostic" onclick="iTab(this,'diagnostic')">🔬 Diagnostic</button>
@@ -195,13 +197,44 @@ var SB = "https://vslsuupszutqarhahdto.supabase.co";
 var SK = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzbHN1dXBzenV0cWFyaGFoZHRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTcxOTQsImV4cCI6MjA5NTI5MzE5NH0.nB7AjCUqkzAKPqfFSrDQallPxRD_W-KafkkvCRy19nQ";
 
 // DEFAULT CATEGORIES
-var DC = {
-  sales:["Cash","Card","Talabat","TMdone","Khedma","Babel Burger"],
-  exp:  ["Purchases","Petrol","Water"],
-  fixed:["Shop Rent","Room Rent","Salaries Paid","Salaries Remaining","Car","Electricity","Room"],
-  comm: ["Talabat Commission","Khedma Commission","TMdone Commission","Babel Burger Commission"],
-  other:["Maintenance","Emergency","Other"]
+// Default categories - key is fixed, name is editable
+var DC_DEF = {
+  sales:[
+    {k:"cash",n:"Cash"},{k:"card",n:"Card"},{k:"talabat",n:"Talabat"},
+    {k:"tmdone",n:"TMdone"},{k:"khedma",n:"Khedma"},{k:"babel",n:"Babel Burger"}
+  ],
+  exp:[
+    {k:"purchases",n:"Purchases"},{k:"petrol",n:"Petrol"},{k:"water",n:"Water"}
+  ],
+  fixed:[
+    {k:"shoprent",n:"Shop Rent"},{k:"roomrent",n:"Room Rent"},
+    {k:"salpaid",n:"Salaries Paid"},{k:"salrem",n:"Salaries Remaining"},
+    {k:"car",n:"Car"},{k:"elec",n:"Electricity"},{k:"room",n:"Room"}
+  ],
+  comm:[
+    {k:"comm_tal",n:"Talabat Commission"},{k:"comm_kh",n:"Khedma Commission"},
+    {k:"comm_tm",n:"TMdone Commission"},{k:"comm_bb",n:"Babel Burger Commission"}
+  ],
+  other:[
+    {k:"maint",n:"Maintenance"},{k:"emerg",n:"Emergency"},{k:"other",n:"Other"}
+  ]
 };
+// Active categories (loaded from cache or defaults)
+var DC = loadDC();
+function loadDC(){
+  var saved = cGet("dc_cats");
+  if(saved) return saved;
+  return JSON.parse(JSON.stringify(DC_DEF));
+}
+function saveDC(){
+  cSet("dc_cats", DC);
+}
+// Get name by key
+function catName(type, key){
+  var cats = DC[type]||[];
+  var cat = cats.find(function(c){ return c.k===key; });
+  return cat ? cat.n : key;
+}
 
 // STATE
 var ST = {
@@ -334,8 +367,8 @@ async function loadDay(date){
 
 function rDaily(){
   var s=0,e=0;
-  DC.sales.forEach(function(k){ s+=parseFloat((ST.dVals.sales||{})[k])||0; });
-  DC.exp.forEach(function(k){ e+=parseFloat((ST.dVals.exp||{})[k])||0; });
+  DC.sales.forEach(function(cat){ s+=parseFloat((ST.dVals.sales||{})[cat.k])||0; });
+  DC.exp.forEach(function(cat){ e+=parseFloat((ST.dVals.exp||{})[cat.k])||0; });
   var n=s-e;
   var h='<div class="stats">'
     +'<div class="stat"><div class="sv" style="color:var(--G);" id="gs">'+fmt(s)+'</div><div class="sl">Sales OMR</div></div>'
@@ -364,8 +397,8 @@ function rDaily(){
 
 function updS(){
   var s=0,e=0;
-  DC.sales.forEach(function(k){ var el=g("si-"+k.replace(/ /g,"_")); if(el) s+=parseFloat(el.value)||0; });
-  DC.exp.forEach(function(k){ var el=g("ei-"+k.replace(/ /g,"_")); if(el) e+=parseFloat(el.value)||0; });
+  DC.sales.forEach(function(cat){ var el=g("si-"+cat.k); if(el) s+=parseFloat(el.value)||0; });
+  DC.exp.forEach(function(cat){ var el=g("ei-"+cat.k); if(el) e+=parseFloat(el.value)||0; });
   var n=s-e;
   var gsE=g("gs"),geE=g("ge"),gnE=g("gn");
   if(gsE) gsE.textContent=fmt(s);
@@ -385,8 +418,8 @@ async function saveDay(){
   if(_sv){ toast("Saving...","#3b82f6"); return; }
   _sv=true;
   var v={sales:{},exp:{}};
-  DC.sales.forEach(function(k){ var el=g("si-"+k.replace(/ /g,"_")); v.sales[k]=parseFloat(el&&el.value)||0; });
-  DC.exp.forEach(function(k){ var el=g("ei-"+k.replace(/ /g,"_")); v.exp[k]=parseFloat(el&&el.value)||0; });
+  DC.sales.forEach(function(cat){ var el=g("si-"+cat.k); v.sales[cat.k]=parseFloat(el&&el.value)||0; });
+  DC.exp.forEach(function(cat){ var el=g("ei-"+cat.k); v.exp[cat.k]=parseFloat(el&&el.value)||0; });
   var r=await sb("/rest/v1/day_logs?on_conflict=branch_id,date","POST",
     {branch_id:ST.branch.id,date:ST.dDate,data:v},
     {"Prefer":"resolution=merge-duplicates,return=minimal"});
@@ -462,9 +495,9 @@ async function chMon(m){
 
 async function saveMon(){
   var v={fixed:{},comm:{},other:{}}; var sts={};
-  DC.fixed.forEach(function(k){ var el=g("mf-"+k.replace(/ /g,"_")); v.fixed[k]=parseFloat(el&&el.value)||0; var sb2=g("sf-"+k.replace(/ /g,"_")); if(sb2) sts["f_"+k]=sb2.dataset.status||"pending"; });
-  DC.comm.forEach(function(k){ var el=g("mc-"+k.replace(/ /g,"_")); v.comm[k]=parseFloat(el&&el.value)||0; var sb2=g("sc-"+k.replace(/ /g,"_")); if(sb2) sts["c_"+k]=sb2.dataset.status||"pending"; });
-  DC.other.forEach(function(k){ var el=g("mo-"+k.replace(/ /g,"_")); v.other[k]=parseFloat(el&&el.value)||0; var el2=g("no-"+k.replace(/ /g,"_")); if(el2) v.other[k+"_note"]=el2.value||""; var sb2=g("so-"+k.replace(/ /g,"_")); if(sb2) sts["o_"+k]=sb2.dataset.status||"pending"; });
+  DC.fixed.forEach(function(cat){ var el=g("mf-"+cat.k); v.fixed[cat.k]=parseFloat(el&&el.value)||0; var sb2=g("sf-"+cat.k); if(sb2) sts["f_"+cat.k]=sb2.dataset.status||"pending"; });
+  DC.comm.forEach(function(cat){ var el=g("mc-"+cat.k); v.comm[cat.k]=parseFloat(el&&el.value)||0; var sb2=g("sc-"+cat.k); if(sb2) sts["c_"+cat.k]=sb2.dataset.status||"pending"; });
+  DC.other.forEach(function(cat){ var el=g("mo-"+cat.k); v.other[cat.k]=parseFloat(el&&el.value)||0; var el2=g("no-"+cat.k); if(el2) v.other[cat.k+"_note"]=el2.value||""; var sb2=g("so-"+cat.k); if(sb2) sts["o_"+cat.k]=sb2.dataset.status||"pending"; });
   var r=await sb("/rest/v1/month_logs?on_conflict=branch_id,month","POST",
     {branch_id:ST.branch.id,month:ST.mDate,data:v,status:sts},
     {"Prefer":"resolution=merge-duplicates,return=minimal"});
@@ -897,6 +930,69 @@ async function addB(){
 }
 
 // ══════════════════════════════════════════════════════
+// IT — CATEGORIES
+// ══════════════════════════════════════════════════════
+function rITCats(){
+  var sections = [
+    {key:"sales", label:"📈 Daily Sales",     type:"daily"},
+    {key:"exp",   label:"💸 Daily Expenses",   type:"daily"},
+    {key:"fixed", label:"📌 Monthly Fixed",    type:"monthly"},
+    {key:"comm",  label:"📱 App Commission",   type:"monthly"},
+    {key:"other", label:"🔧 Other Expenses",   type:"monthly"}
+  ];
+  var h = "";
+  sections.forEach(function(sec){
+    h += '<div class="card"><div class="ctitle">'+sec.label+'</div>';
+    var cats = DC[sec.key]||[];
+    cats.forEach(function(cat, idx){
+      h += '<div class="itr">';
+      h += '<input type="text" class="inp" data-sec="'+sec.key+'" data-idx="'+idx+'" value="'+esc(cat.n)+'" onchange="renCat(this)" style="flex:1;font-size:14px;padding:8px 10px;"/>';
+      h += '<button class="btn br bsm" data-sec="'+sec.key+'" data-idx="'+idx+'" onclick="delCat(this.dataset.sec,parseInt(this.dataset.idx))" style="width:auto;padding:8px 12px;">🗑</button>';
+      h += '</div>';
+    });
+    h += '<div style="display:flex;gap:8px;margin-top:10px;">';
+    h += '<input type="text" class="inp" id="nc-'+sec.key+'" placeholder="New item name..." style="flex:1;"/>';
+    h += '<button class="btn bg bsm" data-sec="'+sec.key+'" onclick="addCat(this.dataset.sec)" style="width:auto;">Add</button>';
+    h += '</div></div>';
+  });
+  g("it-body").innerHTML = h;
+}
+
+function renCat(inp){
+  var sec = inp.dataset.sec;
+  var idx = parseInt(inp.dataset.idx);
+  var newName = inp.value.trim();
+  if(!newName){ toast("Name required","#ef4444"); return; }
+  if(!DC[sec] || !DC[sec][idx]) return;
+  DC[sec][idx].n = newName;
+  saveDC();
+  toast("Renamed ✓","#10b981");
+}
+
+function delCat(sec, idx){
+  if(!DC[sec]) return;
+  if(DC[sec].length <= 1){ toast("Must have at least 1 item","#ef4444"); return; }
+  DC[sec].splice(idx, 1);
+  saveDC();
+  toast("Deleted ✓","#ef4444");
+  rITCats();
+}
+
+function addCat(sec){
+  var inp = g("nc-"+sec);
+  if(!inp || !inp.value.trim()){ toast("Enter a name","#ef4444"); return; }
+  var name = inp.value.trim();
+  // Generate unique key
+  var key = sec+"_"+Date.now();
+  if(!DC[sec]) DC[sec] = [];
+  DC[sec].push({k:key, n:name});
+  saveDC();
+  toast("Added ✓","#10b981");
+  inp.value = "";
+  rITCats();
+}
+
+// ══════════════════════════════════════════════════════
 // IT — SETTINGS
 // ══════════════════════════════════════════════════════
 function rITSettings(){
@@ -1087,6 +1183,7 @@ function iTab(btn,tab){
   document.querySelectorAll("#S-IT .tab").forEach(function(t){ t.classList.remove("on"); });
   btn.classList.add("on");
   if(tab==="branches") rITBranches();
+  else if(tab==="categories") rITCats();
   else if(tab==="settings") rITSettings();
   else if(tab==="data") rITData();
   else if(tab==="diagnostic") rITDiag();
