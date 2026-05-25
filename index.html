@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#0f172a"/>
+<title>Daily Sale</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<style>
+:root{
+  --bg:#0f172a;--sur:#1e293b;--card:#263147;--bdr:#334155;
+  --tx:#f1f5f9;--sub:#94a3b8;
+  --G:#10b981;--R:#ef4444;--B:#3b82f6;--A:#f59e0b;
+  --rad:12px;
+  --st:env(safe-area-inset-top,0px);
+  --sb:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;}
+.scr{display:none;min-height:100vh;flex-direction:column;}
+.scr.on{display:flex;}
+.hdr{background:var(--sur);border-bottom:1px solid var(--bdr);padding:calc(14px + var(--st)) 16px 14px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;}
+.hdr-ico{width:36px;height:36px;border-radius:10px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.hdr-t{font-size:17px;font-weight:800;flex:1;}
+.hdr-s{font-size:12px;color:var(--sub);margin-top:2px;}
+.hdr-x{background:none;border:none;color:var(--sub);font-size:22px;cursor:pointer;padding:4px 8px;}
+.body{flex:1;padding:16px;display:flex;flex-direction:column;gap:12px;max-width:520px;width:100%;margin:0 auto;padding-bottom:calc(28px + var(--sb));}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rad);padding:16px;}
+.ctitle{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:var(--rad);border:none;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;width:100%;transition:opacity .15s;}
+.btn:active{opacity:.7;}
+.bp{background:var(--B);color:#fff;}
+.bg{background:var(--G);color:#fff;}
+.br{background:var(--R);color:#fff;}
+.bh{background:var(--sur);color:var(--tx);border:1px solid var(--bdr);}
+.bsm{padding:8px 14px;font-size:13px;width:auto;border-radius:9px;}
+.inp{width:100%;padding:12px 14px;background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--rad);color:var(--tx);font-family:inherit;font-size:15px;outline:none;transition:border-color .15s;}
+.inp:focus{border-color:var(--B);}
+.inp::placeholder{color:var(--sub);}
+.lbl{font-size:12px;font-weight:700;color:var(--sub);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.4px;}
+.tabs{display:flex;background:var(--sur);border-bottom:1px solid var(--bdr);overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:1;min-width:72px;padding:13px 8px;font-size:12px;font-weight:700;color:var(--sub);background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s;}
+.tab.on{color:var(--B);border-bottom-color:var(--B);}
+.bcard{background:var(--card);border:1.5px solid var(--bdr);border-radius:var(--rad);padding:18px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .15s;}
+.bcard:active{border-color:var(--B);}
+.bico{width:52px;height:52px;border-radius:12px;background:var(--sur);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.stat{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rad);padding:12px 8px;text-align:center;}
+.sv{font-size:16px;font-weight:900;line-height:1.2;}
+.sl{font-size:10px;color:var(--sub);margin-top:3px;font-weight:600;}
+.irow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bdr);}
+.irow:last-child{border-bottom:none;}
+.irl{flex:1;font-size:14px;}
+.inum{width:120px;padding:8px 10px;background:var(--sur);border:1.5px solid var(--bdr);border-radius:9px;color:var(--tx);font-family:inherit;font-size:15px;font-weight:700;outline:none;text-align:right;}
+.inum:focus{border-color:var(--B);}
+.srow{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--bdr);}
+.srow:last-child{border-bottom:none;}
+.sbtn{padding:5px 10px;border-radius:7px;border:none;font-family:inherit;font-weight:700;font-size:11px;cursor:pointer;min-width:74px;text-align:center;}
+.sp{background:#064e3b;color:#6ee7b7;}
+.sn{background:#451a03;color:#fcd34d;}
+.lrow{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--bdr);cursor:pointer;}
+.lrow:last-child{border-bottom:none;}
+.lrow:active{opacity:.7;}
+.bdg{display:inline-flex;align-items:center;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;}
+.bdg-g{background:#064e3b;color:#6ee7b7;}
+.bdg-a{background:#451a03;color:#fcd34d;}
+.bdg-b{background:#1e3a5f;color:#93c5fd;}
+.bdg-r{background:#450a0a;color:#fca5a5;}
+.sec{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;padding:10px 0 6px;}
+.note-i{width:100%;padding:7px 10px;background:var(--sur);border:1px solid var(--bdr);border-radius:8px;color:var(--sub);font-family:inherit;font-size:12px;outline:none;margin-top:5px;}
+.itr{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--bdr);}
+.itr:last-child{border-bottom:none;}
+.itr-i{flex:1;}
+.itr-t{font-size:14px;font-weight:600;}
+.itr-s{font-size:12px;color:var(--sub);margin-top:2px;}
+#toast{position:fixed;bottom:calc(80px + var(--sb));left:50%;transform:translateX(-50%) translateY(16px);background:var(--sur);color:var(--tx);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;opacity:0;transition:all .25s;z-index:999;white-space:nowrap;border:1px solid var(--bdr);pointer-events:none;}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+#pin{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px;}
+#pin.on{display:flex;}
+.pt{font-size:22px;font-weight:800;}
+.ps{font-size:14px;color:var(--sub);}
+.pdots{display:flex;gap:14px;}
+.pd{width:16px;height:16px;border-radius:50%;border:2px solid var(--bdr);transition:all .15s;}
+.pd.on{background:var(--B);border-color:var(--B);}
+.ppad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:250px;}
+.pk{padding:17px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--rad);font-size:22px;font-weight:700;text-align:center;cursor:pointer;transition:background .1s;user-select:none;}
+.pk:active{background:var(--B);}
+.pe{color:var(--R);font-size:13px;min-height:20px;text-align:center;}
+#mwrap{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:none;align-items:flex-end;justify-content:center;}
+#mwrap.on{display:flex;}
+#mbox{background:var(--sur);border-radius:20px 20px 0 0;padding:24px 20px calc(24px + var(--sb));width:100%;max-width:520px;border-top:1px solid var(--bdr);max-height:85vh;overflow-y:auto;}
+.mt{font-size:17px;font-weight:800;margin-bottom:16px;}
+.mbtns{display:flex;gap:10px;margin-top:16px;}
+.loader{text-align:center;padding:48px 20px;color:var(--sub);}
+.spin{width:28px;height:28px;border:3px solid var(--bdr);border-top-color:var(--B);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 12px;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.dout{background:#020617;border-radius:10px;padding:14px;font-family:"Courier New",monospace;font-size:11px;color:#94a3b8;max-height:420px;overflow-y:auto;white-space:pre-wrap;line-height:1.7;margin-top:10px;}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div id="pin">
+  <div style="font-size:52px" id="pico">🔐</div>
+  <div class="pt" id="pt">Enter PIN</div>
+  <div class="ps" id="ps">Enter your access code</div>
+  <div class="pdots">
+    <div class="pd" id="pd0"></div><div class="pd" id="pd1"></div>
+    <div class="pd" id="pd2"></div><div class="pd" id="pd3"></div>
+  </div>
+  <div class="ppad">
+    <div class="pk" onclick="pk(1)">1</div><div class="pk" onclick="pk(2)">2</div><div class="pk" onclick="pk(3)">3</div>
+    <div class="pk" onclick="pk(4)">4</div><div class="pk" onclick="pk(5)">5</div><div class="pk" onclick="pk(6)">6</div>
+    <div class="pk" onclick="pk(7)">7</div><div class="pk" onclick="pk(8)">8</div><div class="pk" onclick="pk(9)">9</div>
+    <div class="pk" onclick="pclr()" style="font-size:13px">CLR</div>
+    <div class="pk" onclick="pk(0)">0</div>
+    <div class="pk" onclick="pbk()" style="font-size:15px">⌫</div>
+  </div>
+  <div class="pe" id="pe"></div>
+  <button class="btn bh bsm" onclick="closePIN()" style="width:180px;">Cancel</button>
+</div>
+<div id="mwrap" onclick="cmOut(event)"><div id="mbox"></div></div>
+
+<!-- BRANCH SELECT -->
+<div class="scr on" id="S-BS">
+  <div class="hdr">
+    <div class="hdr-ico">🍗</div>
+    <div><div class="hdr-t">Daily Sale</div><div class="hdr-s" id="bs-sub">Loading...</div></div>
+  </div>
+  <div class="body">
+    <div id="bs-list"><div class="loader"><div class="spin"></div>Connecting to Supabase...</div></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn bh" onclick="openPIN('mgr')" style="flex:1;font-size:13px;">👔 Manager</button>
+      <button class="btn bh" onclick="openPIN('it')"  style="flex:1;font-size:13px;">⚙️ IT Admin</button>
+    </div>
+  </div>
+</div>
+
+<!-- EMPLOYEE -->
+<div class="scr" id="S-EMP">
+  <div class="hdr">
+    <div class="hdr-ico" id="e-ico">🏪</div>
+    <div style="flex:1;"><div class="hdr-t" id="e-name">Branch</div><div class="hdr-s" id="e-date"></div></div>
+    <button class="hdr-x" onclick="goHome()">✕</button>
+  </div>
+  <div class="tabs">
+    <button class="tab on" id="et-daily"   onclick="eTab(this,'daily')">📝 Daily</button>
+    <button class="tab"    id="et-monthly" onclick="eTab(this,'monthly')">📅 Monthly</button>
+    <button class="tab"    id="et-records" onclick="eTab(this,'records')">📋 Records</button>
+    <button class="tab"    id="et-notes"   onclick="eTab(this,'notes')">💬 Notes</button>
+  </div>
+  <div class="body" id="e-body"><div class="loader"><div class="spin"></div>Loading...</div></div>
+</div>
+
+<!-- MANAGER -->
+<div class="scr" id="S-MGR">
+  <div class="hdr">
+    <div class="hdr-ico">👔</div>
+    <div style="flex:1;"><div class="hdr-t">Manager View</div><div class="hdr-s" id="m-sub"></div></div>
+    <button class="hdr-x" onclick="goHome()">✕</button>
+  </div>
+  <div class="tabs">
+    <button class="tab on" id="mt-overview"  onclick="mTab(this,'overview')">📊 Overview</button>
+    <button class="tab"    id="mt-report"    onclick="mTab(this,'report')">📈 Report</button>
+    <button class="tab"    id="mt-transfers" onclick="mTab(this,'transfers')">💵 Transfers</button>
+    <button class="tab"    id="mt-ai"        onclick="mTab(this,'ai')">🤖 AI</button>
+  </div>
+  <div class="body" id="m-body"><div class="loader"><div class="spin"></div>Loading...</div></div>
+</div>
+
+<!-- IT ADMIN -->
+<div class="scr" id="S-IT">
+  <div class="hdr">
+    <div class="hdr-ico">⚙️</div>
+    <div style="flex:1;"><div class="hdr-t">IT Admin</div><div class="hdr-s">System Control</div></div>
+    <button class="hdr-x" onclick="goHome()">✕</button>
+  </div>
+  <div class="tabs">
+    <button class="tab on" id="it-branches"   onclick="iTab(this,'branches')">🏪 Branches</button>
+    <button class="tab"    id="it-settings"   onclick="iTab(this,'settings')">⚙️ Settings</button>
+    <button class="tab"    id="it-data"       onclick="iTab(this,'data')">💾 Data</button>
+    <button class="tab"    id="it-diagnostic" onclick="iTab(this,'diagnostic')">🔬 Diagnostic</button>
+  </div>
+  <div class="body" id="it-body"><div class="loader"><div class="spin"></div>Loading...</div></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// DAILY SALE v1.0 — Supabase-First PWA
+// ══════════════════════════════════════════════════════
+var SB = "https://vslsuupszutqarhahdto.supabase.co";
+var SK = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzbHN1dXBzenV0cWFyaGFoZHRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTcxOTQsImV4cCI6MjA5NTI5MzE5NH0.nB7AjCUqkzAKPqfFSrDQallPxRD_W-KafkkvCRy19nQ";
+
+// DEFAULT CATEGORIES
+var DC = {
+  sales:["Cash","Card","Talabat","TMdone","Khedma","Babel Burger"],
+  exp:  ["Purchases","Petrol","Water"],
+  fixed:["Shop Rent","Room Rent","Salaries Paid","Salaries Remaining","Car","Electricity","Room"],
+  comm: ["Talabat Commission","Khedma Commission","TMdone Commission","Babel Burger Commission"],
+  other:["Maintenance","Emergency","Other"]
+};
+
+// STATE
+var ST = {
+  branches:[], branch:null,
+  dDate:"", dVals:{sales:{},exp:{}},
+  mDate:"", mVals:{fixed:{},comm:{},other:{}}, mSts:{},
+  mgrM:"", rptM:"", rptB:"all", trM:"",
+  aiHist:[], diagRep:"", diagIss:[],
+  pinCb:null, pinVal:null
+};
+
+// PINS (configurable)
+var PINS = { mgr: cGet("pin_mgr")||"0000", it: cGet("pin_it")||"1234" };
+
+// ── UTILS ─────────────────────────────────────────────
+function g(id){ return document.getElementById(id); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function curM(){ return new Date().toISOString().slice(0,7); }
+function fmt(n){
+  var v=parseFloat(n)||0;
+  try{ return new Intl.NumberFormat("en-US",{minimumFractionDigits:3,maximumFractionDigits:3}).format(v); }
+  catch(e){ var p=v.toFixed(3).split("."); p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,","); return p.join("."); }
+}
+function fd(d){
+  if(!d||typeof d!=="string"||d.length<10) return d||"";
+  var p=d.split("-"); return p[2]+"/"+p[1]+"/"+p[0];
+}
+function esc(s){
+  if(!s) return "";
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function mSel(sel,fn){
+  var ms=[]; for(var i=0;i<13;i++){ var d=new Date(); d.setMonth(d.getMonth()-i); ms.push(d.toISOString().slice(0,7)); }
+  var h='<select onchange="'+fn+'(this.value)" style="width:100%;padding:10px 12px;background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--rad);color:var(--tx);font-family:inherit;font-size:14px;font-weight:700;outline:none;margin-bottom:12px;">';
+  ms.forEach(function(m){ h+='<option value="'+m+'"'+(m===sel?" selected":"")+'>'+m+'</option>'; });
+  return h+'</select>';
+}
+
+// ── CACHE ─────────────────────────────────────────────
+function cSet(k,v){ try{ localStorage.setItem("ds_"+k,JSON.stringify(v)); }catch(e){} }
+function cGet(k,d){ try{ var v=localStorage.getItem("ds_"+k); return v!==null?JSON.parse(v):(d!==undefined?d:null); }catch(e){ return d!==undefined?d:null; } }
+function cDel(k){ try{ localStorage.removeItem("ds_"+k); }catch(e){} }
+
+// ── TOAST ─────────────────────────────────────────────
+var _tt=null;
+function toast(msg,c){
+  var e=g("toast"); if(!e) return;
+  e.textContent=msg; e.style.background=c||"#1e293b";
+  e.classList.add("on");
+  if(_tt) clearTimeout(_tt);
+  _tt=setTimeout(function(){ e.classList.remove("on"); },2500);
+}
+
+// ── SCREENS ───────────────────────────────────────────
+function show(id){
+  document.querySelectorAll(".scr").forEach(function(s){ s.classList.remove("on"); });
+  var s=g(id); if(s) s.classList.add("on");
+  window.scrollTo(0,0);
+}
+function goHome(){ ST.branch=null; show("S-BS"); loadBranches(); }
+
+// ── SUPABASE ──────────────────────────────────────────
+async function sb(path,method,body,extra){
+  method=method||"GET";
+  var headers={"apikey":SK,"Authorization":"Bearer "+SK,"Content-Type":"application/json","Cache-Control":"no-store"};
+  if(extra) Object.keys(extra).forEach(function(k){ headers[k]=extra[k]; });
+  var opts={method:method,headers:headers};
+  if(body) opts.body=JSON.stringify(body);
+  try{
+    var r=await fetch(SB+path,opts);
+    if(!r.ok){ console.error("SB",r.status,path); return null; }
+    var t=await r.text(); return t?JSON.parse(t):null;
+  }catch(e){ console.error("sb:",e.message); return null; }
+}
+
+// ── BRANCHES ──────────────────────────────────────────
+async function loadBranches(){
+  var bs=g("bs-sub"); if(bs) bs.textContent="Connecting...";
+  var d=await sb("/rest/v1/branches?select=*&order=sort_order.asc,id.asc");
+  if(d&&d.length){
+    ST.branches=d.map(function(b){ return {id:b.id,name:b.name||"Branch",icon:b.icon||"🏪",pass:b.pass||"",sort:b.sort_order||0}; });
+    cSet("branches",ST.branches);
+  } else {
+    ST.branches=cGet("branches")||[];
+  }
+  renderBS();
+}
+
+function renderBS(){
+  var c=g("bs-list"); if(!c) return;
+  var bs=g("bs-sub"); if(bs) bs.textContent=ST.branches.length+" branch"+(ST.branches.length!==1?"es":"")+" available";
+  if(!ST.branches.length){
+    c.innerHTML='<div class="loader" style="padding:32px;"><div style="font-size:36px;margin-bottom:10px;">🏪</div><div>No branches yet</div><div style="font-size:12px;color:var(--sub);margin-top:6px;">Add branches from IT Admin</div></div>';
+    return;
+  }
+  c.innerHTML=ST.branches.map(function(b){
+    var cnt=cGet(b.id+"_cnt")||0;
+    return '<div class="bcard" data-id="'+b.id+'" onclick="selBranch(this.dataset.id)">'
+      +'<div class="bico">'+b.icon+'</div>'
+      +'<div style="flex:1;"><div style="font-size:16px;font-weight:800;">'+esc(b.name)+'</div>'
+      +'<div style="font-size:12px;color:var(--sub);">'+cnt+' day records</div></div>'
+      +'<div style="color:var(--sub);font-size:22px;">›</div></div>';
+  }).join("");
+}
+
+function selBranch(id){
+  var b=ST.branches.find(function(x){ return x.id===id; });
+  if(!b) return;
+  if(b.pass){ openPIN("branch",function(p){ return p===b.pass; },function(){ doSel(b); }); }
+  else doSel(b);
+}
+
+async function doSel(b){
+  ST.branch=b; ST.dDate=today(); ST.dVals={sales:{},exp:{}};
+  ST.mDate=curM(); ST.mVals={fixed:{},comm:{},other:{}}; ST.mSts={};
+  g("e-ico").textContent=b.icon; g("e-name").textContent=b.name; g("e-date").textContent=fd(today());
+  show("S-EMP");
+  await loadDay(today());
+  empTab2("daily");
+}
+
+// ══════════════════════════════════════════════════════
+// EMPLOYEE — DAILY
+// ══════════════════════════════════════════════════════
+async function loadDay(date){
+  ST.dDate=date; ST.dVals={sales:{},exp:{}};
+  var d=await sb("/rest/v1/day_logs?branch_id=eq."+ST.branch.id+"&date=eq."+date+"&select=data");
+  if(d&&d[0]&&d[0].data) ST.dVals=d[0].data;
+}
+
+function rDaily(){
+  var s=0,e=0;
+  DC.sales.forEach(function(k){ s+=parseFloat((ST.dVals.sales||{})[k])||0; });
+  DC.exp.forEach(function(k){ e+=parseFloat((ST.dVals.exp||{})[k])||0; });
+  var n=s-e;
+  var h='<div class="stats">'
+    +'<div class="stat"><div class="sv" style="color:var(--G);" id="gs">'+fmt(s)+'</div><div class="sl">Sales OMR</div></div>'
+    +'<div class="stat"><div class="sv" style="color:var(--R);" id="ge">'+fmt(e)+'</div><div class="sl">Expenses OMR</div></div>'
+    +'<div class="stat"><div class="sv" style="color:'+(n>=0?"var(--G)":"var(--R)")+'" id="gn">'+fmt(Math.abs(n))+'</div><div class="sl">Net OMR</div></div>'
+    +'</div>';
+  h+='<div class="card">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">';
+  h+='<span class="sec" style="padding:0;margin:0;">📅 Date</span>';
+  h+='<input type="date" value="'+ST.dDate+'" onchange="chDate(this.value)" style="background:var(--sur);border:1px solid var(--bdr);border-radius:8px;color:var(--tx);font-family:inherit;font-size:13px;padding:6px 10px;outline:none;"/>';
+  h+='</div>';
+  h+='<div class="sec">📈 Sales</div>';
+  DC.sales.forEach(function(k){
+    var v=(ST.dVals.sales||{})[k]||"";
+    h+='<div class="irow"><span class="irl">'+k+'</span><input type="number" inputmode="decimal" class="inum" id="si-'+k.replace(/ /g,"_")+'" placeholder="0.000" value="'+(v||"")+'" oninput="updS()"/></div>';
+  });
+  h+='<div class="sec" style="margin-top:4px;">💸 Expenses</div>';
+  DC.exp.forEach(function(k){
+    var v=(ST.dVals.exp||{})[k]||"";
+    h+='<div class="irow"><span class="irl">'+k+'</span><input type="number" inputmode="decimal" class="inum" id="ei-'+k.replace(/ /g,"_")+'" placeholder="0.000" value="'+(v||"")+'" oninput="updS()"/></div>';
+  });
+  h+='</div>';
+  h+='<button class="btn bg" onclick="saveDay()">💾 Save Daily Entry</button>';
+  g("e-body").innerHTML=h;
+}
+
+function updS(){
+  var s=0,e=0;
+  DC.sales.forEach(function(k){ var el=g("si-"+k.replace(/ /g,"_")); if(el) s+=parseFloat(el.value)||0; });
+  DC.exp.forEach(function(k){ var el=g("ei-"+k.replace(/ /g,"_")); if(el) e+=parseFloat(el.value)||0; });
+  var n=s-e;
+  var gsE=g("gs"),geE=g("ge"),gnE=g("gn");
+  if(gsE) gsE.textContent=fmt(s);
+  if(geE) geE.textContent=fmt(e);
+  if(gnE){ gnE.textContent=fmt(Math.abs(n)); gnE.style.color=n>=0?"var(--G)":"var(--R)"; }
+}
+
+async function chDate(d){
+  g("e-body").innerHTML='<div class="loader"><div class="spin"></div>Loading...</div>';
+  await loadDay(d);
+  g("e-date").textContent=fd(d);
+  rDaily();
+}
+
+var _sv=false;
+async function saveDay(){
+  if(_sv){ toast("Saving...","#3b82f6"); return; }
+  _sv=true;
+  var v={sales:{},exp:{}};
+  DC.sales.forEach(function(k){ var el=g("si-"+k.replace(/ /g,"_")); v.sales[k]=parseFloat(el&&el.value)||0; });
+  DC.exp.forEach(function(k){ var el=g("ei-"+k.replace(/ /g,"_")); v.exp[k]=parseFloat(el&&el.value)||0; });
+  var r=await sb("/rest/v1/day_logs?on_conflict=branch_id,date","POST",
+    {branch_id:ST.branch.id,date:ST.dDate,data:v},
+    {"Prefer":"resolution=merge-duplicates,return=minimal"});
+  _sv=false;
+  if(r!==null){
+    ST.dVals=v; var c=cGet(ST.branch.id+"_cnt")||0; cSet(ST.branch.id+"_cnt",c+1);
+    toast("Saved ✓","#10b981"); empTab2("records");
+  } else {
+    toast("Save failed — check connection","#ef4444");
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// EMPLOYEE — MONTHLY
+// ══════════════════════════════════════════════════════
+async function loadMon(m){
+  ST.mDate=m; ST.mVals={fixed:{},comm:{},other:{}}; ST.mSts={};
+  var d=await sb("/rest/v1/month_logs?branch_id=eq."+ST.branch.id+"&month=eq."+m+"&select=*");
+  if(d&&d[0]){ if(d[0].data) ST.mVals=d[0].data; if(d[0].status) ST.mSts=d[0].status; }
+}
+
+function rMonthly(){
+  var h=mSel(ST.mDate,"chMon");
+  // Fixed
+  h+='<div class="card"><div class="ctitle">📌 Fixed Costs</div>';
+  DC.fixed.forEach(function(k){
+    var v=(ST.mVals.fixed||{})[k]||""; var st=ST.mSts["f_"+k]||"pending";
+    var si="mf-"+k.replace(/ /g,"_"); var bi="sf-"+k.replace(/ /g,"_");
+    h+='<div class="srow"><span style="flex:1;font-size:14px;">'+k+'</span>'
+      +'<input type="number" inputmode="decimal" class="inum" id="'+si+'" placeholder="0.000" value="'+(v||"")+'" style="width:110px;"/>'
+      +'<button class="sbtn '+(st==="paid"?"sp":"sn")+'" id="'+bi+'" data-key="f_'+k+'" data-status="'+st+'" onclick="togSts(this)">'+(st==="paid"?"✅ Paid":"⏳ Pending")+'</button>'
+      +'</div>';
+  });
+  h+='</div>';
+  // Commission
+  h+='<div class="card"><div class="ctitle">📱 App Commission</div>';
+  DC.comm.forEach(function(k){
+    var v=(ST.mVals.comm||{})[k]||""; var st=ST.mSts["c_"+k]||"pending";
+    var si="mc-"+k.replace(/ /g,"_"); var bi="sc-"+k.replace(/ /g,"_");
+    h+='<div class="srow"><span style="flex:1;font-size:14px;">'+k+'</span>'
+      +'<input type="number" inputmode="decimal" class="inum" id="'+si+'" placeholder="0.000" value="'+(v||"")+'" style="width:110px;"/>'
+      +'<button class="sbtn '+(st==="paid"?"sp":"sn")+'" id="'+bi+'" data-key="c_'+k+'" data-status="'+st+'" onclick="togSts(this)">'+(st==="paid"?"✅ Paid":"⏳ Pending")+'</button>'
+      +'</div>';
+  });
+  h+='</div>';
+  // Other
+  h+='<div class="card"><div class="ctitle">🔧 Other Expenses</div>';
+  DC.other.forEach(function(k){
+    var v=(ST.mVals.other||{})[k]||""; var note=(ST.mVals.other||{})[k+"_note"]||""; var st=ST.mSts["o_"+k]||"pending";
+    var si="mo-"+k.replace(/ /g,"_"); var bi="so-"+k.replace(/ /g,"_");
+    h+='<div style="padding:8px 0;border-bottom:1px solid var(--bdr);">'
+      +'<div class="srow" style="padding:0;border:none;"><span style="flex:1;font-size:14px;">'+k+'</span>'
+      +'<input type="number" inputmode="decimal" class="inum" id="'+si+'" placeholder="0.000" value="'+(v||"")+'" style="width:110px;"/>'
+      +'<button class="sbtn '+(st==="paid"?"sp":"sn")+'" id="'+bi+'" data-key="o_'+k+'" data-status="'+st+'" onclick="togSts(this)">'+(st==="paid"?"✅ Paid":"⏳ Pending")+'</button>'
+      +'</div>'
+      +'<input type="text" class="note-i" id="no-'+k.replace(/ /g,"_")+'" placeholder="Note / reason..." value="'+esc(note)+'">'
+      +'</div>';
+  });
+  h+='</div>';
+  h+='<button class="btn bg" onclick="saveMon()">💾 Save Monthly</button>';
+  g("e-body").innerHTML=h;
+}
+
+function togSts(btn){
+  var n=btn.dataset.status==="paid"?"pending":"paid";
+  btn.dataset.status=n; btn.className="sbtn "+(n==="paid"?"sp":"sn"); btn.textContent=n==="paid"?"✅ Paid":"⏳ Pending";
+}
+
+async function chMon(m){
+  g("e-body").innerHTML='<div class="loader"><div class="spin"></div>Loading...</div>';
+  await loadMon(m); rMonthly();
+}
+
+async function saveMon(){
+  var v={fixed:{},comm:{},other:{}}; var sts={};
+  DC.fixed.forEach(function(k){ var el=g("mf-"+k.replace(/ /g,"_")); v.fixed[k]=parseFloat(el&&el.value)||0; var sb2=g("sf-"+k.replace(/ /g,"_")); if(sb2) sts["f_"+k]=sb2.dataset.status||"pending"; });
+  DC.comm.forEach(function(k){ var el=g("mc-"+k.replace(/ /g,"_")); v.comm[k]=parseFloat(el&&el.value)||0; var sb2=g("sc-"+k.replace(/ /g,"_")); if(sb2) sts["c_"+k]=sb2.dataset.status||"pending"; });
+  DC.other.forEach(function(k){ var el=g("mo-"+k.replace(/ /g,"_")); v.other[k]=parseFloat(el&&el.value)||0; var el2=g("no-"+k.replace(/ /g,"_")); if(el2) v.other[k+"_note"]=el2.value||""; var sb2=g("so-"+k.replace(/ /g,"_")); if(sb2) sts["o_"+k]=sb2.dataset.status||"pending"; });
+  var r=await sb("/rest/v1/month_logs?on_conflict=branch_id,month","POST",
+    {branch_id:ST.branch.id,month:ST.mDate,data:v,status:sts},
+    {"Prefer":"resolution=merge-duplicates,return=minimal"});
+  if(r!==null){ ST.mVals=v; ST.mSts=sts; toast("Monthly saved ✓","#10b981"); empTab2("records"); }
+  else toast("Save failed","#ef4444");
+}
+
+// ══════════════════════════════════════════════════════
+// EMPLOYEE — RECORDS
+// ══════════════════════════════════════════════════════
+async function rRecords(){
+  g("e-body").innerHTML='<div class="loader"><div class="spin"></div>Loading...</div>';
+  var d=await sb("/rest/v1/day_logs?branch_id=eq."+ST.branch.id+"&select=date,data&order=date.desc&limit=90");
+  if(!d||!d.length){ g("e-body").innerHTML='<div class="loader">No records yet</div>'; return; }
+  cSet(ST.branch.id+"_cnt",d.length);
+  var h='<div class="card"><div class="ctitle">📋 Daily Records ('+d.length+')</div>';
+  d.forEach(function(log){
+    var s=0,e=0;
+    if(log.data&&log.data.sales) Object.values(log.data.sales).forEach(function(v){ s+=parseFloat(v)||0; });
+    if(log.data&&log.data.exp)   Object.values(log.data.exp).forEach(function(v){ e+=parseFloat(v)||0; });
+    var n=s-e;
+    h+='<div class="lrow" data-d="'+log.date+'" onclick="editLog(this.dataset.d)">'
+      +'<div><div style="font-weight:700;">'+fd(log.date)+'</div>'
+      +'<div style="font-size:12px;color:var(--sub);">Sales: '+fmt(s)+' | Exp: '+fmt(e)+'</div></div>'
+      +'<div style="text-align:right;"><div style="font-weight:900;font-size:15px;color:'+(n>=0?"var(--G)":"var(--R)")+'">'+fmt(Math.abs(n))+'</div>'
+      +'<div style="font-size:11px;color:var(--sub);">Net OMR</div></div></div>';
+  });
+  h+='</div>';
+  g("e-body").innerHTML=h;
+}
+
+async function editLog(date){
+  g("e-body").innerHTML='<div class="loader"><div class="spin"></div>Loading...</div>';
+  await loadDay(date); g("e-date").textContent=fd(date);
+  document.querySelectorAll("#S-EMP .tab").forEach(function(t){ t.classList.remove("on"); });
+  var et=g("et-daily"); if(et) et.classList.add("on");
+  ST.empTab="daily"; rDaily();
+}
+
+// ══════════════════════════════════════════════════════
+// EMPLOYEE — NOTES
+// ══════════════════════════════════════════════════════
+async function rNotes(){
+  g("e-body").innerHTML='<div class="loader"><div class="spin"></div>Loading...</div>';
+  var d=await sb("/rest/v1/settings?key=eq.notes_"+ST.branch.id+"&select=value");
+  var notes=[]; if(d&&d[0]){ try{ notes=JSON.parse(d[0].value)||[]; }catch(e){} }
+  var h='<div class="card"><div class="ctitle">💬 Send Note to Manager</div>'
+    +'<textarea id="note-t" class="inp" rows="3" placeholder="Type your note here..."></textarea>'
+    +'<button class="btn bp" style="margin-top:10px;" onclick="sendNote()">📤 Send Note</button>'
+    +'</div>';
+  if(notes.length){
+    h+='<div class="card"><div class="ctitle">Previous Notes</div>';
+    notes.slice().reverse().forEach(function(n){
+      h+='<div style="padding:10px 0;border-bottom:1px solid var(--bdr);">'
+        +'<div style="font-size:13px;">'+esc(n.text)+'</div>'
+        +'<div style="font-size:11px;color:var(--sub);margin-top:4px;">'+fd(n.date)+'</div>'
+        +'</div>';
+    });
+    h+='</div>';
+  }
+  g("e-body").innerHTML=h;
+}
+
+async function sendNote(){
+  var inp=g("note-t"); if(!inp||!inp.value.trim()){ toast("Enter a note first","#ef4444"); return; }
+  var d=await sb("/rest/v1/settings?key=eq.notes_"+ST.branch.id+"&select=value");
+  var notes=[]; if(d&&d[0]){ try{ notes=JSON.parse(d[0].value)||[]; }catch(e){} }
+  notes.push({text:inp.value.trim(),date:today()});
+  await sb("/rest/v1/settings?on_conflict=key","POST",
+    {key:"notes_"+ST.branch.id,value:JSON.stringify(notes)},
+    {"Prefer":"resolution=merge-duplicates,return=minimal"});
+  toast("Note sent ✓","#10b981"); inp.value=""; rNotes();
+}
+
+// EMP TABS
+var ST_empTab="daily";
+function eTab(btn,tab){
+  document.querySelectorAll("#S-EMP .tab").forEach(function(t){ t.classList.remove("on"); });
+  btn.classList.add("on"); empTab2(tab);
+}
+async function empTab2(tab){
+  ST_empTab=tab;
+  if(tab==="daily") rDaily();
+  else if(tab==="monthly"){ g("e-body").innerHTML='<div class="loader"><div class="spin"></div>Loading...</div>'; await loadMon(curM()); rMonthly(); }
+  else if(tab==="records") rRecords();
+  else if(tab==="notes") rNotes();
+}
+
+// ══════════════════════════════════════════════════════
+// MANAGER — OVERVIEW
+// ══════════════════════════════════════════════════════
+async function rOverview(){
+  g("m-body").innerHTML='<div class="loader"><div class="spin"></div>Loading...</div>';
+  ST.mgrM=ST.mgrM||curM();
+  var results=await Promise.all(ST.branches.map(function(b){ return sb("/rest/v1/day_logs?branch_id=eq."+b.id+"&select=date,data&order=date.desc"); }));
+  var tS=0,tE=0,cards="";
+  ST.branches.forEach(function(b,i){
+    var logs=(results[i]||[]).filter(function(l){ return l.date&&l.date.startsWith(ST.mgrM); });
+    var s=0,e=0;
+    logs.forEach(function(l){ if(l.data&&l.data.sales) Object.values(l.data.sales).forEach(function(v){ s+=parseFloat(v)||0; }); if(l.data&&l.data.exp) Object.values(l.data.exp).forEach(function(v){ e+=parseFloat(v)||0; }); });
+    tS+=s; tE+=e; var n=s-e;
+    cards+='<div class="itr"><div style="font-size:28px;">'+b.icon+'</div><div class="itr-i"><div class="itr-t">'+esc(b.name)+'</div><div class="itr-s">'+logs.length+' days | Sales: '+fmt(s)+' OMR</div></div><div style="text-align:right;"><div style="font-weight:900;color:'+(n>=0?"var(--G)":"var(--R)")+'">'+fmt(Math.abs(n))+'</div><div style="font-size:11px;color:var(--sub);">Net</div></div></div>';
+  });
+  var tN=tS-tE;
+  var h=mSel(ST.mgrM,"setMgrM");
+  h+='<div class="stats">'
+    +'<div class="stat"><div class="sv" style="color:var(--G);">'+fmt(tS)+'</div><div class="sl">Total Sales</div></div>'
+    +'<div class="stat"><div class="sv" style="color:var(--R);">'+fmt(tE)+'</div><div class="sl">Expenses</div></div>'
+    +'<div class="stat"><div class="sv" style="color:'+(tN>=0?"var(--G)":"var(--R)")+';">'+fmt(Math.abs(tN))+'</div><div class="sl">Net OMR</div></div>'
+    +'</div>';
+  h+='<div class="card"><div class="ctitle">🏪 Branches — '+ST.mgrM+'</div>'+(cards||'<div style="color:var(--sub);font-size:13px;padding:10px 0;">No data this month</div>')+'</div>';
+  h+='<button class="btn bh" onclick="sendWA()">📱 WhatsApp Report</button>';
+  g("m-body").innerHTML=h;
+}
+function setMgrM(m){ ST.mgrM=m; rOverview(); }
+
+async function sendWA(){
+  var m=ST.mgrM||curM();
+  var results=await Promise.all(ST.branches.map(function(b){ return sb("/rest/v1/day_logs?branch_id=eq."+b.id+"&select=date,data"); }));
+  var nl="\n"; var msg="Daily Sale Report"+nl+"Month: "+m+nl+nl;
+  ST.branches.forEach(function(b,i){
+    var logs=(results[i]||[]).filter(function(l){ return l.date&&l.date.startsWith(m); });
+    var s=0,e=0;
+    logs.forEach(function(l){ if(l.data&&l.data.sales) Object.values(l.data.sales).forEach(function(v){ s+=parseFloat(v)||0; }); if(l.data&&l.data.exp) Object.values(l.data.exp).forEach(function(v){ e+=parseFloat(v)||0; }); });
+    msg+=b.name+nl+"Sales: "+fmt(s)+" OMR"+nl+"Expenses: "+fmt(e)+" OMR"+nl+"Net: "+fmt(s-e)+" OMR"+nl+nl;
+  });
+  window.open("https://wa.me/?text="+encodeURIComponent(msg));
+}
+
+// ══════════════════════════════════════════════════════
+// MANAGER — REPORT
+// ══════════════════════════════════════════════════════
+async function rReport(){
+  g("m-body").innerHTML='<div class="loader"><div class="spin"></div>Loading...</div>';
+  ST.rptM=ST.rptM||curM(); ST.rptB=ST.rptB||"all";
+  var h=mSel(ST.rptM,"setRptM");
+  h+='<select onchange="setRptB(this.value)" style="width:100%;padding:10px 12px;background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--rad);color:var(--tx);font-family:inherit;font-size:14px;font-weight:700;outline:none;margin-bottom:12px;">';
+  h+='<option value="all">All Branches</option>';
+  ST.branches.forEach(function(b){ h+='<option value="'+b.id+'"'+(b.id===ST.rptB?" selected":"")+'>'+b.icon+' '+esc(b.name)+'</option>'; });
+  h+='</select>';
+  var flt=ST.rptB==="all"?ST.branches:ST.branches.filter(function(b){ return b.id===ST.rptB; });
+  var res=await Promise.all(flt.map(function(b){ return Promise.all([sb("/rest/v1/day_logs?branch_id=eq."+b.id+"&select=date,data"),sb("/rest/v1/month_logs?branch_id=eq."+b.id+"&month=eq."+ST.rptM+"&select=*")]); }));
+  flt.forEach(function(b,i){
+    var dlAll=res[i][0]||[]; var mlArr=res[i][1]||[]; var ml=mlArr[0]||null;
+    var dl=dlAll.filter(function(l){ return l.date&&l.date.startsWith(ST.rptM); });
+    var s=0,e=0,f=0,c=0,o=0;
+    dl.forEach(function(l){ if(l.data&&l.data.sales) Object.values(l.data.sales).forEach(function(v){ s+=parseFloat(v)||0; }); if(l.data&&l.data.exp) Object.values(l.data.exp).forEach(function(v){ e+=parseFloat(v)||0; }); });
+    var md=(ml&&ml.data)||{}; var ms=(ml&&ml.status)||{};
+    Object.values(md.fixed||{}).forEach(function(v){ f+=parseFloat(v)||0; });
+    Object.values(md.comm||{}).forEach(function(v){ c+=parseFloat(v)||0; });
+    Object.entries(md.other||{}).forEach(function(en){ if(!en[0].endsWith("_note")) o+=parseFloat(en[1])||0; });
+    var paid=0,pend=0;
+    Object.entries(md.fixed||{}).forEach(function(en){ var v=parseFloat(en[1])||0; if((ms["f_"+en[0]]||"pending")==="paid") paid+=v; else pend+=v; });
+    Object.entries(md.comm||{}).forEach(function(en){ var v=parseFloat(en[1])||0; if((ms["c_"+en[0]]||"pending")==="paid") paid+=v; else pend+=v; });
+    Object.entries(md.other||{}).forEach(function(en){ if(en[0].endsWith("_note")) return; var v=parseFloat(en[1])||0; if((ms["o_"+en[0]]||"pending")==="paid") paid+=v; else pend+=v; });
+    var net=s-e-f-c-o;
+    h+='<div class="card"><div class="ctitle">'+b.icon+' '+esc(b.name)+'</div>';
+    // Sales
+    h+='<div class="sec">Sales ('+dl.length+' days)</div>';
+    var sa={};
+    dl.forEach(function(l){ if(l.data&&l.data.sales) Object.entries(l.data.sales).forEach(function(en){ sa[en[0]]=(sa[en[0]]||0)+(parseFloat(en[1])||0); }); });
+    Object.entries(sa).filter(function(en){ return en[1]>0; }).forEach(function(en){
+      h+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bdr);font-size:13px;"><span style="color:var(--sub);">'+en[0]+'</span><span style="font-weight:700;">'+fmt(en[1])+'</span></div>';
+    });
+    h+='<div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:800;color:var(--G);"><span>Total Sales</span><span>'+fmt(s)+' OMR</span></div>';
+    // Fixed
+    if(f>0){
+      h+='<div class="sec">Fixed Costs</div>';
+      Object.entries(md.fixed||{}).filter(function(en){ return en[1]>0; }).forEach(function(en){
+        var ip=(ms["f_"+en[0]]||"pending")==="paid";
+        h+='<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bdr);font-size:13px;">'
+          +'<span style="color:var(--sub);">'+en[0]+'</span>'
+          +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-weight:700;">'+fmt(parseFloat(en[1]))+'</span>'
+          +'<span class="bdg '+(ip?"bdg-g":"bdg-a")+'">'+(ip?"✅ Paid":"⏳ Pending")+'</span></div></div>';
+      });
+    }
+    // Commission
+    if(c>0){
+      h+='<div class="sec">App Commission</div>';
+      Object.entries(md.comm||{}).filter(function(en){ return en[1]>0; }).forEach(function(en){
+        var ip=(ms["c_"+en[0]]||"pending")==="paid";
+        h+='<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bdr);font-size:13px;">'
+          +'<span style="color:var(--sub);">'+en[0]+'</span>'
+          +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-weight:700;">'+fmt(parseFloat(en[1]))+'</span>'
+          +'<span class="bdg '+(ip?"bdg-g":"bdg-a")+'">'+(ip?"✅":"⏳")+'</span></div></div>';
+      });
+    }
+    // Other
+    if(o>0){
+      h+='<div class="sec">Other Expenses</div>';
+      Object.entries(md.other||{}).filter(function(en){ return !en[0].endsWith("_note")&&en[1]>0; }).forEach(function(en){
+        var ip=(ms["o_"+en[0]]||"pending")==="paid"; var note=md.other[en[0]+"_note"]||"";
+        h+='<div style="padding:6px 0;border-bottom:1px solid var(--bdr);font-size:13px;">'
+          +'<div style="display:flex;align-items:center;justify-content:space-between;">'
+          +'<span style="color:var(--sub);">'+en[0]+'</span>'
+          +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-weight:700;">'+fmt(parseFloat(en[1]))+'</span>'
+          +'<span class="bdg '+(ip?"bdg-g":"bdg-a")+'">'+(ip?"✅":"⏳")+'</span></div></div>';
+        if(note) h+='<div style="font-size:11px;color:var(--sub);margin-top:3px;">Note: '+esc(note)+'</div>';
+        h+='</div>';
+      });
+    }
+    // Paid/Pending
+    if(paid+pend>0){
+      h+='<div style="display:flex;gap:8px;margin:10px 0;">'
+        +'<span class="bdg bdg-g" style="flex:1;justify-content:center;padding:7px;">✅ Paid: '+fmt(paid)+' OMR</span>'
+        +'<span class="bdg bdg-a" style="flex:1;justify-content:center;padding:7px;">⏳ Pending: '+fmt(pend)+' OMR</span>'
+        +'</div>';
+    }
+    // Net
+    h+='<div style="background:'+(net>=0?"rgba(16,185,129,.15)":"rgba(239,68,68,.15)")+';border-radius:10px;padding:14px;margin-top:8px;display:flex;align-items:center;justify-content:space-between;">'
+      +'<span style="font-weight:800;">Net Profit</span>'
+      +'<span style="font-weight:900;font-size:18px;color:'+(net>=0?"var(--G)":"var(--R)")+';">'+fmt(Math.abs(net))+' OMR</span>'
+      +'</div></div>';
+  });
+  g("m-body").innerHTML=h;
+}
+function setRptM(m){ ST.rptM=m; rReport(); }
+function setRptB(b){ ST.rptB=b; rReport(); }
+
+// ══════════════════════════════════════════════════════
+// MANAGER — TRANSFERS
+// ══════════════════════════════════════════════════════
+async function rTransfers(){
+  g("m-body").innerHTML='<div class="loader"><div class="spin"></div>Loading...</div>';
+  ST.trM=ST.trM||curM();
+  var d=await sb("/rest/v1/settings?key=eq.transfers&select=value");
+  var trs=[]; if(d&&d[0]){ try{ trs=JSON.parse(d[0].value)||[]; }catch(e){} }
+  var aftab=cGet("aftab_bal")||""; var aftabDt=cGet("aftab_dt")||"";
+  var h=mSel(ST.trM,"setTrM");
+  // Aftab
+  h+='<div class="card" style="border-color:var(--G);background:rgba(16,185,129,.07);">'
+    +'<div class="ctitle" style="color:var(--G);">👤 Balance with Aftab</div>'
+    +'<div style="display:flex;gap:10px;align-items:center;">'
+    +'<input type="number" inputmode="decimal" id="aftab-i" class="inp" placeholder="0.000" value="'+(aftab||"")+'" style="flex:1;font-weight:700;"/>'
+    +'<span style="font-weight:700;color:var(--G);">OMR</span>'
+    +'<button class="btn bg bsm" onclick="saveAftab()" style="width:auto;">Save</button>'
+    +'</div>';
+  if(aftabDt) h+='<div style="font-size:11px;color:var(--sub);margin-top:8px;">Last updated: '+fd(aftabDt)+'</div>';
+  h+='</div>';
+  // Add Transfer
+  h+='<div class="card"><div class="ctitle">➕ Add Transfer</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px;">'
+    +'<input type="number" inputmode="decimal" id="tr-a" class="inp" placeholder="Amount (OMR)"/>'
+    +'<input type="date" id="tr-d" class="inp" value="'+today()+'"/>'
+    +'<input type="text" id="tr-n" class="inp" placeholder="Note (optional)"/>'
+    +'<button class="btn bp" onclick="addTr()">Add Transfer</button>'
+    +'</div></div>';
+  // List
+  var mTr=trs.filter(function(t){ return (t.date||"").startsWith(ST.trM); });
+  var total=mTr.reduce(function(s,t){ return s+(parseFloat(t.amount)||0); },0);
+  h+='<div class="card"><div class="ctitle">💵 Transfers — '+ST.trM;
+  if(mTr.length) h+=' <span class="bdg bdg-b">'+fmt(total)+' OMR</span>';
+  h+='</div>';
+  if(!mTr.length){ h+='<div style="color:var(--sub);font-size:13px;padding:14px 0;text-align:center;">No transfers this month</div>'; }
+  else {
+    mTr.forEach(function(t){
+      h+='<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bdr);">'
+        +'<div><div style="font-weight:700;">'+fmt(t.amount)+' OMR</div>'
+        +'<div style="font-size:12px;color:var(--sub);">'+fd(t.date)+(t.note?" — "+esc(t.note):"")+'</div></div>'
+        +'<button data-tid="'+t.id+'" onclick="delTr(this.dataset.tid)" style="background:none;border:none;color:var(--R);cursor:pointer;font-size:18px;padding:4px;">🗑</button>'
+        +'</div>';
+    });
+  }
+  h+='</div>';
+  g("m-body").innerHTML=h;
+}
+
+function saveAftab(){ var i=g("aftab-i"); if(!i) return; cSet("aftab_bal",i.value); cSet("aftab_dt",today()); toast("Saved ✓","#10b981"); rTransfers(); }
+
+async function addTr(){
+  var amt=parseFloat((g("tr-a")||{value:0}).value)||0; var date=(g("tr-d")||{value:today()}).value||today(); var note=((g("tr-n")||{value:""}).value||"").trim();
+  if(!amt){ toast("Enter amount","#ef4444"); return; }
+  var d=await sb("/rest/v1/settings?key=eq.transfers&select=value");
+  var trs=[]; if(d&&d[0]){ try{ trs=JSON.parse(d[0].value)||[]; }catch(e){} }
+  trs.push({id:Date.now().toString(),amount:amt,date:date,note:note});
+  trs.sort(function(a,b){ return (b.date||"").localeCompare(a.date||""); });
+  await sb("/rest/v1/settings?on_conflict=key","POST",{key:"transfers",value:JSON.stringify(trs)},{"Prefer":"resolution=merge-duplicates,return=minimal"});
+  toast("Transfer added ✓","#10b981"); rTransfers();
+}
+
+async function delTr(id){
+  var d=await sb("/rest/v1/settings?key=eq.transfers&select=value");
+  var trs=[]; if(d&&d[0]){ try{ trs=JSON.parse(d[0].value)||[]; }catch(e){} }
+  trs=trs.filter(function(t){ return t.id!==id; });
+  await sb("/rest/v1/settings?on_conflict=key","POST",{key:"transfers",value:JSON.stringify(trs)},{"Prefer":"resolution=merge-duplicates,return=minimal"});
+  toast("Deleted","#ef4444"); rTransfers();
+}
+function setTrM(m){ ST.trM=m; rTransfers(); }
+
+// ══════════════════════════════════════════════════════
+// MANAGER — AI
+// ══════════════════════════════════════════════════════
+async function rAI(){
+  var key=cGet("claude_key")||"";
+  var h='<div class="card" style="min-height:280px;"><div class="ctitle">🤖 AI Business Assistant</div>';
+  if(!key){
+    h+='<div style="color:var(--sub);font-size:13px;text-align:center;padding:30px 10px;">🔑 API Key not set<br/><br/><span style="font-size:12px;">Go to IT Admin → Settings</span></div>';
+  } else {
+    h+='<div id="ai-chat" style="max-height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px;">';
+    if(!ST.aiHist.length) h+='<div style="color:var(--sub);font-size:13px;text-align:center;padding:24px;">Ask anything about your business...</div>';
+    ST.aiHist.forEach(function(m){
+      h+='<div style="background:'+(m.role==="user"?"var(--B)":"var(--sur)")+';color:#fff;padding:10px 14px;border-radius:12px;font-size:13px;max-width:88%;align-self:'+(m.role==="user"?"flex-end":"flex-start")+';">'+esc(m.content)+'</div>';
+    });
+    h+='</div>'
+      +'<div style="display:flex;gap:8px;">'
+      +'<input class="inp" id="ai-i" placeholder="Ask about your business..." style="flex:1;"/>'
+      +'<button class="btn bp bsm" onclick="sendAI()" style="width:auto;">Send</button>'
+      +'</div>';
+  }
+  h+='</div>';
+  h+='<div class="card"><div class="ctitle">⚡ Quick Analysis</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px;">'
+    +'<button class="btn bh" data-q="month" onclick="qAI(this.dataset.q)" style="justify-content:flex-start;">📊 This Month Performance</button>'
+    +'<button class="btn bh" data-q="week" onclick="qAI(this.dataset.q)" style="justify-content:flex-start;">📈 Weekly Trends</button>'
+    +'<button class="btn bh" data-q="alerts" onclick="qAI(this.dataset.q)" style="justify-content:flex-start;">⚠️ Smart Alerts</button>'
+    +'</div></div>';
+  g("m-body").innerHTML=h;
+  if(ST.aiHist.length){ var c=g("ai-chat"); if(c) c.scrollTop=c.scrollHeight; }
+}
+
+async function getBizCtx(){
+  var results=await Promise.all(ST.branches.map(function(b){ return sb("/rest/v1/day_logs?branch_id=eq."+b.id+"&select=date,data&order=date.desc&limit=60"); }));
+  var lines=["Restaurant: Daily Sale, Oman. Branches: "+ST.branches.length];
+  ST.branches.forEach(function(b,i){
+    var logs=results[i]||[]; var s=0,e=0;
+    logs.forEach(function(l){ if(l.data&&l.data.sales) Object.values(l.data.sales).forEach(function(v){ s+=parseFloat(v)||0; }); if(l.data&&l.data.exp) Object.values(l.data.exp).forEach(function(v){ e+=parseFloat(v)||0; }); });
+    lines.push(b.name+": "+logs.length+" days, Sales="+fmt(s)+" OMR, Net="+fmt(s-e)+" OMR");
+  });
+  return lines.join(". ");
+}
+
+async function sendAI(){ var i=g("ai-i"); if(!i||!i.value.trim()) return; await doAI(i.value.trim()); i.value=""; }
+function qAI(q){ var ps={month:"Analyze this month sales performance and top revenue channels",week:"Compare recent weekly trends",alerts:"Identify unusual expenses or revenue drops needing attention"}; doAI(ps[q]||q); }
+
+async function doAI(msg){
+  var key=cGet("claude_key")||""; if(!key){ toast("Set API key in IT Admin first","#ef4444"); return; }
+  ST.aiHist.push({role:"user",content:msg}); rAI();
+  var ctx=await getBizCtx();
+  var msgs=ST.aiHist.slice(-8).map(function(m){ return {role:m.role,content:m.content}; });
+  if(msgs.length>0) msgs[0].content="Context: "+ctx+" | "+msgs[0].content;
+  try{
+    var r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:800,messages:msgs,system:"You are a business analyst for a restaurant in Oman. Be brief and actionable."})});
+    var data=await r.json(); var reply=(data.content&&data.content[0])?data.content[0].text:"No response.";
+    ST.aiHist.push({role:"assistant",content:reply});
+  }catch(e){ ST.aiHist.push({role:"assistant",content:"Error: "+e.message}); }
+  rAI();
+}
+
+// MGR TABS
+function mTab(btn,tab){
+  document.querySelectorAll("#S-MGR .tab").forEach(function(t){ t.classList.remove("on"); });
+  btn.classList.add("on");
+  if(tab==="overview") rOverview();
+  else if(tab==="report") rReport();
+  else if(tab==="transfers") rTransfers();
+  else if(tab==="ai") rAI();
+}
+
+// ══════════════════════════════════════════════════════
+// IT — BRANCHES
+// ══════════════════════════════════════════════════════
+async function rITBranches(){
+  var h='<div class="card"><div class="ctitle">🏪 Manage Branches</div>';
+  if(!ST.branches.length) h+='<div style="color:var(--sub);font-size:13px;padding:16px 0;text-align:center;">No branches yet — add one below</div>';
+  ST.branches.forEach(function(b){
+    h+='<div class="itr"><div style="font-size:30px;">'+b.icon+'</div>'
+      +'<div class="itr-i"><div class="itr-t">'+esc(b.name)+'</div><div class="itr-s">ID: '+b.id+' | Pass: '+(b.pass?"🔒 Set":"⚠️ None")+'</div></div>'
+      +'<button class="btn bh bsm" data-id="'+b.id+'" onclick="editB(this.dataset.id)">Edit</button>'
+      +'</div>';
+  });
+  h+='</div>';
+  h+='<div class="card"><div class="ctitle">➕ Add New Branch</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px;">'
+    +'<input type="text" id="nb-n" class="inp" placeholder="Branch name"/>'
+    +'<input type="text" id="nb-i" class="inp" placeholder="Icon emoji (e.g. 🍗)" maxlength="2"/>'
+    +'<input type="password" id="nb-p" class="inp" placeholder="Branch password (optional)"/>'
+    +'<button class="btn bp" onclick="addB()">Add Branch</button>'
+    +'</div></div>';
+  g("it-body").innerHTML=h;
+}
+
+function editB(id){
+  var b=ST.branches.find(function(x){ return x.id===id; }); if(!b) return;
+  g("mbox").innerHTML='<div class="mt">✏️ Edit Branch</div>'
+    +'<label class="lbl">Name</label><input type="text" id="eb-n" class="inp" value="'+esc(b.name)+'" style="margin-bottom:10px;"/>'
+    +'<label class="lbl">Icon</label><input type="text" id="eb-i" class="inp" value="'+b.icon+'" maxlength="2" style="margin-bottom:10px;"/>'
+    +'<label class="lbl">Password (blank = keep current)</label><input type="password" id="eb-p" class="inp" placeholder="New password..." style="margin-bottom:4px;"/>'
+    +'<div class="mbtns"><button class="btn bh" onclick="cm()">Cancel</button><button class="btn bp" data-id="'+id+'" onclick="saveEB(this.dataset.id)">Save</button></div>'
+    +'<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bdr);">'
+    +'<button class="btn br" data-id="'+id+'" data-nm="'+esc(b.name)+'" onclick="confDelB(this.dataset.id,this.dataset.nm)">🗑 Delete Branch</button></div>';
+  g("mwrap").classList.add("on");
+}
+
+async function saveEB(id){
+  var name=(g("eb-n")||{value:""}).value.trim(); var icon=(g("eb-i")||{value:"🏪"}).value.trim()||"🏪"; var pass=(g("eb-p")||{value:""}).value;
+  if(!name){ toast("Name required","#ef4444"); return; }
+  var payload={name:name,icon:icon}; if(pass) payload.pass=pass;
+  await sb("/rest/v1/branches?id=eq."+id,"PATCH",payload,{"Prefer":"return=minimal"});
+  cm(); toast("Branch updated ✓","#10b981"); await loadBranches(); rITBranches();
+}
+
+function confDelB(id,name){
+  cm();
+  g("mbox").innerHTML='<div class="mt">⚠️ Delete Branch</div>'
+    +'<div style="font-size:14px;color:var(--sub);margin-bottom:16px;">Delete <strong style="color:var(--tx);">'+esc(name)+'</strong>?<br/>All data for this branch will be permanently deleted.</div>'
+    +'<label class="lbl">Type branch name to confirm</label>'
+    +'<input type="text" id="del-c" class="inp" placeholder="'+esc(name)+'" style="margin-bottom:4px;"/>'
+    +'<div class="mbtns"><button class="btn bh" onclick="cm()">Cancel</button><button class="btn br" data-id="'+id+'" data-nm="'+esc(name)+'" onclick="doDelB(this.dataset.id,this.dataset.nm)">Delete Forever</button></div>';
+  g("mwrap").classList.add("on");
+}
+
+async function doDelB(id,name){
+  var inp=g("del-c"); if(!inp||inp.value.trim()!==name){ toast("Name doesn't match","#ef4444"); return; }
+  cm(); toast("Deleting...","#ef4444");
+  await sb("/rest/v1/day_logs?branch_id=eq."+id,"DELETE");
+  await sb("/rest/v1/month_logs?branch_id=eq."+id,"DELETE");
+  await sb("/rest/v1/branches?id=eq."+id,"DELETE");
+  cDel(id+"_cnt"); toast("Branch deleted","#ef4444");
+  await loadBranches(); rITBranches();
+}
+
+async function addB(){
+  var name=(g("nb-n")||{value:""}).value.trim(); var icon=(g("nb-i")||{value:"🏪"}).value.trim()||"🏪"; var pass=(g("nb-p")||{value:""}).value;
+  if(!name){ toast("Enter branch name","#ef4444"); return; }
+  var id="b"+Date.now();
+  await sb("/rest/v1/branches","POST",{id:id,name:name,icon:icon,pass:pass||null,sort_order:ST.branches.length},{"Prefer":"return=minimal"});
+  toast("Branch added ✓","#10b981");
+  if(g("nb-n")) g("nb-n").value=""; if(g("nb-i")) g("nb-i").value=""; if(g("nb-p")) g("nb-p").value="";
+  await loadBranches(); rITBranches();
+}
+
+// ══════════════════════════════════════════════════════
+// IT — SETTINGS
+// ══════════════════════════════════════════════════════
+function rITSettings(){
+  var key=cGet("claude_key")||"";
+  var h='<div class="card"><div class="ctitle">🔐 Access PINs</div>'
+    +'<label class="lbl">Manager PIN (current: '+PINS.mgr+')</label>'
+    +'<input type="password" id="n-mp" class="inp" maxlength="4" placeholder="New 4-digit PIN" style="margin-bottom:10px;"/>'
+    +'<label class="lbl">IT Admin PIN (current: '+PINS.it+')</label>'
+    +'<input type="password" id="n-ip" class="inp" maxlength="4" placeholder="New 4-digit PIN" style="margin-bottom:12px;"/>'
+    +'<button class="btn bp" onclick="savePINs()">Save PINs</button></div>';
+  h+='<div class="card"><div class="ctitle">🤖 Claude AI Key</div>'
+    +'<input type="password" id="ai-k" class="inp" placeholder="sk-ant-api03-..." value="'+(key?key.slice(0,25)+"...":"")+'" style="margin-bottom:10px;"/>'
+    +'<button class="btn bp" onclick="saveAIK()">Save API Key</button></div>';
+  h+='<div class="card"><div class="ctitle">🎯 Monthly Targets</div>';
+  ST.branches.forEach(function(b){
+    var t=cGet("tgt_"+b.id)||"";
+    h+='<div class="itr"><span style="flex:1;font-size:14px;">'+b.icon+' '+esc(b.name)+'</span>'
+      +'<input type="number" inputmode="decimal" class="inum" id="tgt-'+b.id+'" placeholder="0.000" value="'+(t||"")+'" style="width:120px;"/>'
+      +'<button class="btn bp bsm" data-id="'+b.id+'" onclick="saveTgt(this.dataset.id)">Set</button></div>';
+  });
+  h+='</div>';
+  g("it-body").innerHTML=h;
+}
+
+function savePINs(){
+  var mgr=(g("n-mp")||{value:""}).value.trim(); var it=(g("n-ip")||{value:""}).value.trim();
+  if(mgr&&mgr.length===4){ PINS.mgr=mgr; cSet("pin_mgr",mgr); }
+  if(it&&it.length===4){ PINS.it=it; cSet("pin_it",it); }
+  toast("PINs saved ✓","#10b981");
+}
+function saveAIK(){
+  var i=g("ai-k"); if(!i||!i.value.trim()){ toast("Enter API key","#ef4444"); return; }
+  var v=i.value.trim(); if(v.includes("...")){ toast("Enter the full key","#ef4444"); return; }
+  cSet("claude_key",v); toast("API Key saved ✓","#10b981");
+}
+function saveTgt(bid){ var i=g("tgt-"+bid); if(!i) return; cSet("tgt_"+bid,parseFloat(i.value)||0); toast("Target saved ✓","#10b981"); }
+
+// ══════════════════════════════════════════════════════
+// IT — DATA
+// ══════════════════════════════════════════════════════
+function rITData(){
+  var h='<div class="card"><div class="ctitle">📤 Export Data</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px;">'
+    +'<button class="btn bh" onclick="expJSON()">📄 Export JSON</button>'
+    +'<button class="btn bh" onclick="expCSV()">📊 Export CSV</button>'
+    +'</div></div>';
+  h+='<div class="card"><div class="ctitle" style="color:var(--R);">🗑 Danger Zone</div>'
+    +'<div style="font-size:13px;color:var(--sub);margin-bottom:12px;">These actions cannot be undone.</div>'
+    +'<button class="btn br" onclick="clrCache()">Clear Local Cache</button></div>';
+  g("it-body").innerHTML=h;
+}
+
+async function expJSON(){
+  var all={};
+  for(var i=0;i<ST.branches.length;i++){
+    var b=ST.branches[i];
+    var dl=await sb("/rest/v1/day_logs?branch_id=eq."+b.id+"&select=*&order=date.desc");
+    var ml=await sb("/rest/v1/month_logs?branch_id=eq."+b.id+"&select=*");
+    all[b.id]={branch:b,day_logs:dl||[],month_logs:ml||[]};
+  }
+  var blob=new Blob([JSON.stringify(all,null,2)],{type:"application/json"});
+  var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="daily_sale_"+today()+".json"; a.click();
+  toast("Exported ✓","#10b981");
+}
+
+async function expCSV(){
+  var rows=[["Branch","Date","Cash","Card","Talabat","TMdone","Khedma","Babel Burger","Purchases","Petrol","Water","Total Sales","Total Expenses","Net"]];
+  for(var i=0;i<ST.branches.length;i++){
+    var b=ST.branches[i]; var dl=await sb("/rest/v1/day_logs?branch_id=eq."+b.id+"&select=*&order=date.desc");
+    (dl||[]).forEach(function(log){
+      var s=(log.data&&log.data.sales)||{}; var e=(log.data&&log.data.exp)||{};
+      var ts=Object.values(s).reduce(function(a,v){ return a+(parseFloat(v)||0); },0);
+      var te=Object.values(e).reduce(function(a,v){ return a+(parseFloat(v)||0); },0);
+      rows.push([b.name,log.date,s["Cash"]||0,s["Card"]||0,s["Talabat"]||0,s["TMdone"]||0,s["Khedma"]||0,s["Babel Burger"]||0,e["Purchases"]||0,e["Petrol"]||0,e["Water"]||0,ts,te,ts-te]);
+    });
+  }
+  var csv=rows.map(function(r){ return r.join(","); }).join("\n");
+  var blob=new Blob([csv],{type:"text/csv"}); var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="daily_sale_"+today()+".csv"; a.click();
+  toast("CSV exported ✓","#10b981");
+}
+
+function clrCache(){
+  var keys=[]; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k&&k.startsWith("ds_")) keys.push(k); }
+  keys.forEach(function(k){ localStorage.removeItem(k); });
+  toast("Cache cleared","#f59e0b");
+}
+
+// ══════════════════════════════════════════════════════
+// IT — DIAGNOSTIC
+// ══════════════════════════════════════════════════════
+function rITDiag(){
+  var h='<div class="card"><div class="ctitle">🔬 Diagnostic Center</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">'
+    +'<button class="btn bh bsm" data-s="connection" onclick="runDiag(this.dataset.s)">🌐 Connection</button>'
+    +'<button class="btn bh bsm" data-s="branches" onclick="runDiag(this.dataset.s)">🏪 Branches</button>'
+    +'<button class="btn bh bsm" data-s="data" onclick="runDiag(this.dataset.s)">💾 Data</button>'
+    +'<button class="btn bh bsm" data-s="integrity" onclick="runDiag(this.dataset.s)">🔍 Integrity</button>'
+    +'</div>'
+    +'<button class="btn bp" data-s="all" onclick="runDiag(this.dataset.s)" style="margin-bottom:10px;">📋 Full System Report</button>'
+    +'<div class="dout" id="dout">Press a button to run diagnostics...</div>'
+    +'<div id="d-acts" style="display:none;margin-top:10px;display:flex;flex-direction:column;gap:8px;">'
+    +'<button id="d-fix" style="display:none;" class="btn br" onclick="diagFix()">🔧 Auto Fix Issues</button>'
+    +'<button class="btn bh" onclick="cpyDiag()">📋 Copy Report</button>'
+    +'</div></div>';
+  g("it-body").innerHTML=h;
+}
+
+async function runDiag(sec){
+  ST.diagIss=[];
+  var out=g("dout"); if(!out) return;
+  out.textContent="Running...";
+  var lines=["DAILY SALE — DIAGNOSTIC REPORT","Generated: "+new Date().toISOString(),"Section: "+sec.toUpperCase(),"═".repeat(42)];
+
+  if(sec==="connection"||sec==="all"){
+    lines.push("","── CONNECTION ──────────────────────────");
+    var ping=await sb("/rest/v1/branches?select=id&limit=1");
+    if(ping!==null){ lines.push("✅ Supabase: CONNECTED"); }
+    else{ lines.push("❌ Supabase: FAILED"); ST.diagIss.push({msg:"Supabase connection failed",fix:null}); }
+    var key=cGet("claude_key")||"";
+    lines.push(key?"✅ AI Key: configured":"⚠️  AI Key: not set");
+  }
+
+  if(sec==="branches"||sec==="all"){
+    lines.push("","── BRANCHES ────────────────────────────");
+    lines.push("ℹ️  Total: "+ST.branches.length);
+    ST.branches.forEach(function(b){ lines.push("  "+b.icon+" "+b.name+" | Pass: "+(b.pass?"✅":"⚠️  None")); });
+  }
+
+  if(sec==="data"||sec==="all"){
+    lines.push("","── DATA STATUS ─────────────────────────");
+    for(var i=0;i<ST.branches.length;i++){
+      var b=ST.branches[i];
+      var dl=await sb("/rest/v1/day_logs?branch_id=eq."+b.id+"&select=date&order=date.desc");
+      var ml=await sb("/rest/v1/month_logs?branch_id=eq."+b.id+"&select=month");
+      lines.push(b.name+":","  Day logs: "+((dl&&dl.length)||0),"  Month logs: "+((ml&&ml.length)||0));
+      if(dl&&dl.length){
+        lines.push("  Latest: "+dl[0].date);
+        var hasT=dl.some(function(l){ return l.date===today(); });
+        lines.push(hasT?"  ✅ Today entered":"  ⚠️  Today not entered");
+        var dates=dl.map(function(l){ return l.date; });
+        var dupes=dates.filter(function(d,idx){ return dates.indexOf(d)!==idx; });
+        if(dupes.length){ lines.push("  ❌ Duplicates: "+dupes.join(", ")); ST.diagIss.push({msg:"Duplicates in "+b.name,fix:"dedup_"+b.id}); }
+        else lines.push("  ✅ No duplicates");
+      }
+    }
+  }
+
+  if(sec==="integrity"||sec==="all"){
+    lines.push("","── INTEGRITY ───────────────────────────");
+    var lsS=0,lsK=0;
+    for(var j=0;j<localStorage.length;j++){ var k=localStorage.key(j); if(k&&k.startsWith("ds_")){ lsK++; lsS+=(localStorage.getItem(k)||"").length; } }
+    lines.push("ℹ️  Cache keys: "+lsK,"ℹ️  Cache size: "+(lsS/1024).toFixed(1)+" KB","✅ No corrupt JSON");
+  }
+
+  lines.push("","═".repeat(42),"ISSUES: "+ST.diagIss.length);
+  ST.diagIss.forEach(function(iss,i){ lines.push((i+1)+". "+iss.msg); });
+  lines.push("═".repeat(42));
+  ST.diagRep=lines.join("\n");
+  out.textContent=ST.diagRep;
+  var acts=g("d-acts"); var fixBtn=g("d-fix");
+  if(acts) acts.style.display="flex";
+  var fixable=ST.diagIss.filter(function(i){ return i.fix; });
+  if(fixBtn){ if(fixable.length){ fixBtn.style.display="block"; fixBtn.textContent="🔧 Auto Fix ("+fixable.length+")"; } else fixBtn.style.display="none"; }
+}
+
+async function diagFix(){
+  var done=0;
+  for(var i=0;i<ST.diagIss.length;i++){
+    var iss=ST.diagIss[i];
+    if(iss.fix&&iss.fix.startsWith("dedup_")){
+      var bid=iss.fix.replace("dedup_","");
+      var dl=await sb("/rest/v1/day_logs?branch_id=eq."+bid+"&select=*&order=date.desc");
+      if(dl){ var seen={},toDel=[]; dl.forEach(function(l){ if(seen[l.date]) toDel.push(l.id); else seen[l.date]=true; }); for(var j=0;j<toDel.length;j++) await sb("/rest/v1/day_logs?id=eq."+toDel[j],"DELETE"); done++; }
+    }
+  }
+  toast("Fixed "+done+" issues ✓","#10b981"); runDiag("all");
+}
+
+function cpyDiag(){
+  if(!ST.diagRep){ toast("Run diagnostic first","#ef4444"); return; }
+  navigator.clipboard.writeText(ST.diagRep).then(function(){ toast("Copied ✓"); }).catch(function(){
+    var ta=document.createElement("textarea"); ta.value=ST.diagRep; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta); toast("Copied ✓");
+  });
+}
+
+// IT TABS
+function iTab(btn,tab){
+  document.querySelectorAll("#S-IT .tab").forEach(function(t){ t.classList.remove("on"); });
+  btn.classList.add("on");
+  if(tab==="branches") rITBranches();
+  else if(tab==="settings") rITSettings();
+  else if(tab==="data") rITData();
+  else if(tab==="diagnostic") rITDiag();
+}
+
+// ══════════════════════════════════════════════════════
+// PIN SYSTEM
+// ══════════════════════════════════════════════════════
+var _pv="";
+function openPIN(type,validator,callback){
+  _pv=""; ST.pinCb=callback||null; ST.pinVal=validator||null;
+  updPD(); g("pe").textContent="";
+  if(type==="mgr"){ g("pico").textContent="👔"; g("pt").textContent="Manager Access"; g("ps").textContent="Enter Manager PIN"; ST.pinVal=function(p){ return p===PINS.mgr; }; ST.pinCb=function(){ show("S-MGR"); g("m-sub").textContent=today(); var mt=g("mt-overview"); if(mt) mt.classList.add("on"); rOverview(); }; }
+  else if(type==="it"){ g("pico").textContent="⚙️"; g("pt").textContent="IT Admin"; g("ps").textContent="Enter IT PIN"; ST.pinVal=function(p){ return p===PINS.it; }; ST.pinCb=function(){ show("S-IT"); rITBranches(); }; }
+  else if(type==="branch"){ g("pico").textContent="🔐"; g("pt").textContent="Branch Access"; g("ps").textContent="Enter Branch Password"; }
+  g("pin").classList.add("on");
+}
+function closePIN(){ g("pin").classList.remove("on"); _pv=""; updPD(); }
+function pk(k){ if(_pv.length>=4) return; _pv+=k; updPD(); if(_pv.length===4) setTimeout(chkPIN,120); }
+function pbk(){ _pv=_pv.slice(0,-1); updPD(); }
+function pclr(){ _pv=""; updPD(); }
+function updPD(){ for(var i=0;i<4;i++){ var d=g("pd"+i); if(d) d.className="pd"+(i<_pv.length?" on":""); } }
+function chkPIN(){ if(ST.pinVal&&ST.pinVal(_pv)){ closePIN(); if(ST.pinCb) ST.pinCb(_pv); } else { g("pe").textContent="Incorrect PIN. Try again."; _pv=""; updPD(); setTimeout(function(){ if(g("pe")) g("pe").textContent=""; },2000); } }
+
+// ── MODAL ─────────────────────────────────────────────
+function cm(){ g("mwrap").classList.remove("on"); }
+function cmOut(e){ if(e.target===g("mwrap")) cm(); }
+
+// ── INIT ──────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded",async function(){
+  var sm=cGet("pin_mgr"); var si=cGet("pin_it");
+  if(sm&&sm.length===4) PINS.mgr=sm;
+  if(si&&si.length===4) PINS.it=si;
+  if("serviceWorker" in navigator){ navigator.serviceWorker.getRegistrations().then(function(regs){ regs.forEach(function(r){ r.unregister(); }); }); }
+  if("caches" in window){ caches.keys().then(function(keys){ keys.forEach(function(k){ caches.delete(k); }); }); }
+  await loadBranches();
+});
+</script>
+</body>
+</html>
