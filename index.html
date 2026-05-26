@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="theme-color" content="#0f172a"/>
 <title>Daily Sale</title>
@@ -58,6 +59,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .inum{width:120px;padding:8px 10px;background:var(--sur);border:1.5px solid var(--bdr);border-radius:9px;color:var(--tx);font-family:inherit;font-size:15px;font-weight:700;outline:none;text-align:right;-moz-appearance:textfield;}
 .inum:focus{border-color:var(--B);}
 .inum::-webkit-outer-spin-button,.inum::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+/* Prevent mouse wheel from changing number inputs */
+.inum{pointer-events:auto;}
 .srow{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--bdr);}
 .srow:last-child{border-bottom:none;}
 .sbtn{padding:5px 10px;border-radius:7px;border:none;font-family:inherit;font-weight:700;font-size:11px;cursor:pointer;min-width:74px;text-align:center;}
@@ -84,12 +87,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 #pin.on{display:flex;}
 .pt{font-size:22px;font-weight:800;}
 .ps{font-size:14px;color:var(--sub);}
-.pdots{display:flex;gap:14px;}
-.pd{width:16px;height:16px;border-radius:50%;border:2px solid var(--bdr);transition:all .15s;}
-.pd.on{background:var(--B);border-color:var(--B);}
-.ppad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:250px;}
-.pk{padding:17px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--rad);font-size:22px;font-weight:700;text-align:center;cursor:pointer;transition:background .1s;user-select:none;}
-.pk:active{background:var(--B);}
+
+
 .pe{color:var(--R);font-size:13px;min-height:20px;text-align:center;}
 #mwrap{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:none;align-items:flex-end;justify-content:center;}
 #mwrap.on{display:flex;}
@@ -108,20 +107,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   <div style="font-size:52px" id="pico">🔐</div>
   <div class="pt" id="pt">Enter PIN</div>
   <div class="ps" id="ps">Enter your access code</div>
-  <div class="pdots">
-    <div class="pd" id="pd0"></div><div class="pd" id="pd1"></div>
-    <div class="pd" id="pd2"></div><div class="pd" id="pd3"></div>
-  </div>
-  <div class="ppad">
-    <div class="pk" onclick="pk(1)">1</div><div class="pk" onclick="pk(2)">2</div><div class="pk" onclick="pk(3)">3</div>
-    <div class="pk" onclick="pk(4)">4</div><div class="pk" onclick="pk(5)">5</div><div class="pk" onclick="pk(6)">6</div>
-    <div class="pk" onclick="pk(7)">7</div><div class="pk" onclick="pk(8)">8</div><div class="pk" onclick="pk(9)">9</div>
-    <div class="pk" onclick="pclr()" style="font-size:13px">CLR</div>
-    <div class="pk" onclick="pk(0)">0</div>
-    <div class="pk" onclick="pbk()" style="font-size:15px">⌫</div>
-  </div>
-  <div class="pe" id="pe"></div>
-  <button class="btn bh bsm" onclick="closePIN()" style="width:180px;">Cancel</button>
+
 </div>
 <div id="mwrap" onclick="cmOut(event)"><div id="mbox"></div></div>
 
@@ -192,11 +178,69 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 <script>
 // ══════════════════════════════════════════════════════
 // DAILY SALE v1.0 — Supabase-First PWA
+// Architecture: Single HTML | Supabase DB | No Backend
+// ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+// SECTION 1: CONFIG
 // ══════════════════════════════════════════════════════
 var SB = "https://vslsuupszutqarhahdto.supabase.co";
 var SK = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzbHN1dXBzenV0cWFyaGFoZHRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTcxOTQsImV4cCI6MjA5NTI5MzE5NH0.nB7AjCUqkzAKPqfFSrDQallPxRD_W-KafkkvCRy19nQ";
 
 // DEFAULT CATEGORIES
+
+// STATE
+var ST = {
+  branches:[], branch:null,
+  dDate:"", dVals:{sales:{},exp:{}},
+  mDate:"", mVals:{fixed:{},comm:{},other:{}}, mSts:{},
+  mgrM:"", rptM:"", rptB:"all", trM:"",
+  aiHist:[], diagRep:"", diagIss:[],
+  pinCb:null, pinVal:null
+};
+
+// PINS (configurable)
+var PINS = { mgr: cGet("pin_mgr")||"0000", it: cGet("pin_it")||"1234" };
+
+// ── UTILS ─────────────────────────────────────────────
+
+// ══════════════════════════════════════════════════════
+// SECTION 2: UTILITIES
+// ══════════════════════════════════════════════════════
+function g(id){ return document.getElementById(id); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function curM(){ return new Date().toISOString().slice(0,7); }
+function fmt(n){
+  var v=parseFloat(n)||0;
+  try{ return new Intl.NumberFormat("en-US",{minimumFractionDigits:3,maximumFractionDigits:3}).format(v); }
+  catch(e){ var p=v.toFixed(3).split("."); p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,","); return p.join("."); }
+}
+function fd(d){
+  if(!d||typeof d!=="string"||d.length<10) return d||"";
+  var p=d.split("-"); return p[2]+"/"+p[1]+"/"+p[0];
+}
+function esc(s){
+  if(!s) return "";
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function mSel(sel,fn){
+  var ms=[]; for(var i=0;i<13;i++){ var d=new Date(); d.setMonth(d.getMonth()-i); ms.push(d.toISOString().slice(0,7)); }
+  var h='<select onchange="'+fn+'(this.value)" style="width:100%;padding:10px 12px;background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--rad);color:var(--tx);font-family:inherit;font-size:14px;font-weight:700;outline:none;margin-bottom:12px;">';
+  ms.forEach(function(m){ h+='<option value="'+m+'"'+(m===sel?" selected":"")+'>'+m+'</option>'; });
+  return h+'</select>';
+}
+
+// ── CACHE ─────────────────────────────────────────────
+
+// ══════════════════════════════════════════════════════
+// SECTION 3: CACHE (localStorage)
+// ══════════════════════════════════════════════════════
+function cSet(k,v){ try{ localStorage.setItem("ds_"+k,JSON.stringify(v)); }catch(e){} }
+function cGet(k,d){ try{ var v=localStorage.getItem("ds_"+k); return v!==null?JSON.parse(v):(d!==undefined?d:null); }catch(e){ return d!==undefined?d:null; } }
+function cDel(k){ try{ localStorage.removeItem("ds_"+k); }catch(e){} }
+// ══════════════════════════════════════════════════════
+// SECTION 4: CATEGORIES — key fixed, name editable
+// ══════════════════════════════════════════════════════
 // Default categories - key is fixed, name is editable
 var DC_DEF = {
   sales:[
@@ -236,49 +280,19 @@ function catName(type, key){
   return cat ? cat.n : key;
 }
 
-// STATE
-var ST = {
-  branches:[], branch:null,
-  dDate:"", dVals:{sales:{},exp:{}},
-  mDate:"", mVals:{fixed:{},comm:{},other:{}}, mSts:{},
-  mgrM:"", rptM:"", rptB:"all", trM:"",
-  aiHist:[], diagRep:"", diagIss:[],
-  pinCb:null, pinVal:null
-};
-
-// PINS (configurable)
-var PINS = { mgr: cGet("pin_mgr")||"0000", it: cGet("pin_it")||"1234" };
-
-// ── UTILS ─────────────────────────────────────────────
-function g(id){ return document.getElementById(id); }
-function today(){ return new Date().toISOString().slice(0,10); }
-function curM(){ return new Date().toISOString().slice(0,7); }
-function fmt(n){
-  var v=parseFloat(n)||0;
-  try{ return new Intl.NumberFormat("en-US",{minimumFractionDigits:3,maximumFractionDigits:3}).format(v); }
-  catch(e){ var p=v.toFixed(3).split("."); p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,","); return p.join("."); }
-}
-function fd(d){
-  if(!d||typeof d!=="string"||d.length<10) return d||"";
-  var p=d.split("-"); return p[2]+"/"+p[1]+"/"+p[0];
-}
-function esc(s){
-  if(!s) return "";
-  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
-function mSel(sel,fn){
-  var ms=[]; for(var i=0;i<13;i++){ var d=new Date(); d.setMonth(d.getMonth()-i); ms.push(d.toISOString().slice(0,7)); }
-  var h='<select onchange="'+fn+'(this.value)" style="width:100%;padding:10px 12px;background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--rad);color:var(--tx);font-family:inherit;font-size:14px;font-weight:700;outline:none;margin-bottom:12px;">';
-  ms.forEach(function(m){ h+='<option value="'+m+'"'+(m===sel?" selected":"")+'>'+m+'</option>'; });
-  return h+'</select>';
-}
-
-// ── CACHE ─────────────────────────────────────────────
-function cSet(k,v){ try{ localStorage.setItem("ds_"+k,JSON.stringify(v)); }catch(e){} }
-function cGet(k,d){ try{ var v=localStorage.getItem("ds_"+k); return v!==null?JSON.parse(v):(d!==undefined?d:null); }catch(e){ return d!==undefined?d:null; } }
-function cDel(k){ try{ localStorage.removeItem("ds_"+k); }catch(e){} }
 
 // ── TOAST ─────────────────────────────────────────────
+
+// Prevent mouse wheel on number inputs globally
+document.addEventListener("wheel", function(e){
+  if(document.activeElement && document.activeElement.classList.contains("inum")){
+    e.preventDefault();
+  }
+}, {passive:false});
+
+// ══════════════════════════════════════════════════════
+// SECTION 5: UI HELPERS
+// ══════════════════════════════════════════════════════
 var _tt=null;
 function toast(msg,c){
   var e=g("toast"); if(!e) return;
@@ -297,6 +311,10 @@ function show(id){
 function goHome(){ ST.branch=null; show("S-BS"); loadBranches(); }
 
 // ── SUPABASE ──────────────────────────────────────────
+
+// ══════════════════════════════════════════════════════
+// SECTION 6: SUPABASE — Single source of truth
+// ══════════════════════════════════════════════════════
 async function sb(path,method,body,extra){
   method=method||"GET";
   var headers={"apikey":SK,"Authorization":"Bearer "+SK,"Content-Type":"application/json","Cache-Control":"no-store"};
@@ -321,6 +339,10 @@ async function sb(path,method,body,extra){
 }
 
 // ── BRANCHES ──────────────────────────────────────────
+
+// ══════════════════════════════════════════════════════
+// SECTION 7: BRANCHES
+// ══════════════════════════════════════════════════════
 async function loadBranches(){
   var bs=g("bs-sub"); if(bs) bs.textContent="Connecting...";
   var d=await sb("/rest/v1/branches?select=*&order=sort_order.asc,id.asc");
@@ -377,6 +399,10 @@ async function doSel(b){
 // ══════════════════════════════════════════════════════
 // EMPLOYEE — DAILY
 // ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+// SECTION 8: EMPLOYEE — DAILY
+// ══════════════════════════════════════════════════════
 async function loadDay(date){
   ST.dDate=date; ST.dVals={sales:{},exp:{}};
   var d=await sb("/rest/v1/day_logs?branch_id=eq."+ST.branch.id+"&date=eq."+date+"&select=data");
@@ -401,16 +427,28 @@ function rDaily(){
   h+='<div class="sec">📈 Sales</div>';
   DC.sales.forEach(function(cat){
     var v=(ST.dVals.sales||{})[cat.k]||"";
-    h+='<div class="irow"><span class="irl">'+cat.n+'</span><input type="number" inputmode="decimal" class="inum" id="si-'+cat.k+'" placeholder="0.000" value="'+( v||"")+'" oninput="updS()"/></div>';
+    h+='<div class="irow"><span class="irl">'+cat.n+'</span><input type="number" inputmode="decimal" class="inum" id="si-'+cat.k+'" placeholder="0.000" value="'+( v||"")+'" oninput="updS()" onkeydown="nextInp(event,this)"/></div>';
   });
   h+='<div class="sec" style="margin-top:4px;">💸 Expenses</div>';
   DC.exp.forEach(function(cat){
     var v=(ST.dVals.exp||{})[cat.k]||"";
-    h+='<div class="irow"><span class="irl">'+cat.n+'</span><input type="number" inputmode="decimal" class="inum" id="ei-'+cat.k+'" placeholder="0.000" value="'+( v||"")+'" oninput="updS()"/></div>';
+    h+='<div class="irow"><span class="irl">'+cat.n+'</span><input type="number" inputmode="decimal" class="inum" id="ei-'+cat.k+'" placeholder="0.000" value="'+( v||"")+'" oninput="updS()" onkeydown="nextInp(event,this)"/></div>';
   });
   h+='</div>';
   h+='<button class="btn bg" onclick="saveDay()">💾 Save Daily Entry</button>';
   g("e-body").innerHTML=h;
+}
+
+function nextInp(e, el){
+  // Enter or Tab moves to next input
+  if(e.key === "Enter" || e.key === "Tab"){
+    e.preventDefault();
+    var all = Array.from(document.querySelectorAll(".inum"));
+    var idx = all.indexOf(el);
+    if(idx >= 0 && idx < all.length-1) all[idx+1].focus();
+  }
+  // Prevent arrow keys from changing value
+  if(e.key === "ArrowUp" || e.key === "ArrowDown") e.preventDefault();
 }
 
 function updS(){
@@ -459,6 +497,10 @@ async function saveDay(){
 
 // ══════════════════════════════════════════════════════
 // EMPLOYEE — MONTHLY
+// ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+// SECTION 9: EMPLOYEE — MONTHLY
 // ══════════════════════════════════════════════════════
 async function loadMon(m){
   ST.mDate=m; ST.mVals={fixed:{},comm:{},other:{}}; ST.mSts={};
@@ -540,6 +582,10 @@ async function saveMon(){
 // ══════════════════════════════════════════════════════
 // EMPLOYEE — RECORDS
 // ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+// SECTION 10: EMPLOYEE — RECORDS
+// ══════════════════════════════════════════════════════
 async function rRecords(){
   if(!ST.branch){ return; }
   g("e-body").innerHTML='<div class="loader"><div class="spin"></div>Loading...</div>';
@@ -577,6 +623,10 @@ async function editLog(date){
 // ══════════════════════════════════════════════════════
 // EMPLOYEE — NOTES
 // ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+// SECTION 11: EMPLOYEE — NOTES
+// ══════════════════════════════════════════════════════
 async function rNotes(){
   if(!ST.branch) return;
   g("e-body").innerHTML='<div class="loader"><div class="spin"></div>Loading...</div>';
@@ -612,6 +662,10 @@ async function sendNote(){
 }
 
 // EMP TABS
+
+// ══════════════════════════════════════════════════════
+// SECTION 12: EMPLOYEE — TABS
+// ══════════════════════════════════════════════════════
 var ST_empTab="daily";
 function eTab(btn,tab){
   document.querySelectorAll("#S-EMP .tab").forEach(function(t){ t.classList.remove("on"); });
@@ -627,6 +681,10 @@ async function empTab2(tab){
 
 // ══════════════════════════════════════════════════════
 // MANAGER — OVERVIEW
+// ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+// SECTION 13: MANAGER — OVERVIEW
 // ══════════════════════════════════════════════════════
 async function rOverview(){
   g("m-body").innerHTML='<div class="loader"><div class="spin"></div>Loading...</div>';
@@ -668,6 +726,10 @@ async function sendWA(){
 
 // ══════════════════════════════════════════════════════
 // MANAGER — REPORT
+// ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+// SECTION 14: MANAGER — REPORT
 // ══════════════════════════════════════════════════════
 async function rReport(){
   g("m-body").innerHTML='<div class="loader"><div class="spin"></div>Loading...</div>';
@@ -759,6 +821,10 @@ function setRptB(b){ ST.rptB=b; rReport(); }
 // ══════════════════════════════════════════════════════
 // MANAGER — TRANSFERS
 // ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+// SECTION 15: MANAGER — TRANSFERS
+// ══════════════════════════════════════════════════════
 async function rTransfers(){
   g("m-body").innerHTML='<div class="loader"><div class="spin"></div>Loading...</div>';
   ST.trM=ST.trM||curM();
@@ -829,6 +895,10 @@ function setTrM(m){ ST.trM=m; rTransfers(); }
 // ══════════════════════════════════════════════════════
 // MANAGER — AI
 // ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+// SECTION 16: MANAGER — AI
+// ══════════════════════════════════════════════════════
 async function rAI(){
   var key=cGet("claude_key")||"";
   var h='<div class="card" style="min-height:280px;"><div class="ctitle">🤖 AI Business Assistant</div>';
@@ -878,7 +948,21 @@ async function doAI(msg){
   var msgs=ST.aiHist.slice(-8).map(function(m){ return {role:m.role,content:m.content}; });
   if(msgs.length>0) msgs[0].content="Context: "+ctx+" | "+msgs[0].content;
   try{
-    var r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:800,messages:msgs,system:"You are a business analyst for a restaurant in Oman. Be brief and actionable."})});
+    var r=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "x-api-key":key,
+        "anthropic-version":"2023-06-01",
+        "anthropic-dangerous-direct-browser-access":"true"
+      },
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:800,
+        messages:msgs,
+        system:"You are a business analyst for a restaurant in Oman. Be brief and actionable."
+      })
+    });
     var data=await r.json(); var reply=(data.content&&data.content[0])?data.content[0].text:"No response.";
     ST.aiHist.push({role:"assistant",content:reply});
   }catch(e){ ST.aiHist.push({role:"assistant",content:"Error: "+e.message}); }
@@ -886,6 +970,10 @@ async function doAI(msg){
 }
 
 // MGR TABS
+
+// ══════════════════════════════════════════════════════
+// SECTION 17: MANAGER — TABS
+// ══════════════════════════════════════════════════════
 function mTab(btn,tab){
   document.querySelectorAll("#S-MGR .tab").forEach(function(t){ t.classList.remove("on"); });
   btn.classList.add("on");
@@ -897,6 +985,10 @@ function mTab(btn,tab){
 
 // ══════════════════════════════════════════════════════
 // IT — BRANCHES
+// ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+// SECTION 18: IT ADMIN — BRANCHES
 // ══════════════════════════════════════════════════════
 async function rITBranches(){
   var h='<div class="card"><div class="ctitle">🏪 Manage Branches</div>';
@@ -971,6 +1063,10 @@ async function addB(){
 // ══════════════════════════════════════════════════════
 // IT — CATEGORIES
 // ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+// SECTION 19: IT ADMIN — CATEGORIES
+// ══════════════════════════════════════════════════════
 function rITCats(){
   var sections = [
     {key:"sales", label:"📈 Daily Sales",     type:"daily"},
@@ -1034,6 +1130,10 @@ function addCat(sec){
 // ══════════════════════════════════════════════════════
 // IT — SETTINGS
 // ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+// SECTION 20: IT ADMIN — SETTINGS
+// ══════════════════════════════════════════════════════
 function rITSettings(){
   var key=cGet("claude_key")||"";
   var h='<div class="card"><div class="ctitle">🔐 Access PINs</div>'
@@ -1071,6 +1171,10 @@ function saveTgt(bid){ var i=g("tgt-"+bid); if(!i) return; cSet("tgt_"+bid,parse
 
 // ══════════════════════════════════════════════════════
 // IT — DATA
+// ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+// SECTION 21: IT ADMIN — DATA
 // ══════════════════════════════════════════════════════
 function rITData(){
   var h='<div class="card"><div class="ctitle">📤 Export Data</div>'
@@ -1121,6 +1225,10 @@ function clrCache(){
 
 // ══════════════════════════════════════════════════════
 // IT — DIAGNOSTIC
+// ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+// SECTION 22: IT ADMIN — DIAGNOSTIC
 // ══════════════════════════════════════════════════════
 function rITDiag(){
   var h='<div class="card"><div class="ctitle">🔬 Diagnostic Center</div>'
@@ -1218,6 +1326,10 @@ function cpyDiag(){
 }
 
 // IT TABS
+
+// ══════════════════════════════════════════════════════
+// SECTION 23: IT ADMIN — TABS
+// ══════════════════════════════════════════════════════
 function iTab(btn,tab){
   document.querySelectorAll("#S-IT .tab").forEach(function(t){ t.classList.remove("on"); });
   btn.classList.add("on");
@@ -1231,27 +1343,76 @@ function iTab(btn,tab){
 // ══════════════════════════════════════════════════════
 // PIN SYSTEM
 // ══════════════════════════════════════════════════════
-var _pv="";
-function openPIN(type,validator,callback){
-  _pv=""; ST.pinCb=callback||null; ST.pinVal=validator||null;
-  updPD(); g("pe").textContent="";
-  if(type==="mgr"){ g("pico").textContent="👔"; g("pt").textContent="Manager Access"; g("ps").textContent="Enter Manager PIN"; ST.pinVal=function(p){ return p===PINS.mgr; }; ST.pinCb=function(){ show("S-MGR"); g("m-sub").textContent=today(); var mt=g("mt-overview"); if(mt) mt.classList.add("on"); rOverview(); }; }
-  else if(type==="it"){ g("pico").textContent="⚙️"; g("pt").textContent="IT Admin"; g("ps").textContent="Enter IT PIN"; ST.pinVal=function(p){ return p===PINS.it; }; ST.pinCb=function(){ show("S-IT"); rITBranches(); }; }
-  else if(type==="branch"){ g("pico").textContent="🔐"; g("pt").textContent="Branch Access"; g("ps").textContent="Enter Branch Password"; }
+
+// ══════════════════════════════════════════════════════
+// SECTION 24: PIN SYSTEM — uses device keyboard
+// ══════════════════════════════════════════════════════
+function openPIN(type, validator, callback){
+  ST.pinCb  = callback  || null;
+  ST.pinVal = validator || null;
+  var inp = g("pin-inp");
+  if(inp){ inp.value=""; }
+  g("pe").textContent = "";
+
+  if(type==="mgr"){
+    g("pico").textContent = "👔";
+    g("pt").textContent   = "Manager Access";
+    g("ps").textContent   = "Enter Manager PIN";
+    ST.pinVal = function(p){ return p === PINS.mgr; };
+    ST.pinCb  = function(){
+      show("S-MGR");
+      g("m-sub").textContent = today();
+      var mt = g("mt-overview"); if(mt) mt.classList.add("on");
+      rOverview();
+    };
+  } else if(type==="it"){
+    g("pico").textContent = "⚙️";
+    g("pt").textContent   = "IT Admin";
+    g("ps").textContent   = "Enter IT PIN";
+    ST.pinVal = function(p){ return p === PINS.it; };
+    ST.pinCb  = function(){ show("S-IT"); rITBranches(); };
+  } else if(type==="branch"){
+    g("pico").textContent = "🔐";
+    g("pt").textContent   = "Branch Access";
+    g("ps").textContent   = "Enter Branch Password";
+  }
+
   g("pin").classList.add("on");
+  // Auto-focus input after transition
+  setTimeout(function(){ if(inp) inp.focus(); }, 100);
 }
-function closePIN(){ g("pin").classList.remove("on"); _pv=""; updPD(); }
-function pk(k){ if(_pv.length>=4) return; _pv+=k; updPD(); if(_pv.length===4) setTimeout(chkPIN,120); }
-function pbk(){ _pv=_pv.slice(0,-1); updPD(); }
-function pclr(){ _pv=""; updPD(); }
-function updPD(){ for(var i=0;i<4;i++){ var d=g("pd"+i); if(d) d.className="pd"+(i<_pv.length?" on":""); } }
-function chkPIN(){ if(ST.pinVal&&ST.pinVal(_pv)){ closePIN(); if(ST.pinCb) ST.pinCb(_pv); } else { g("pe").textContent="Incorrect PIN. Try again."; _pv=""; updPD(); setTimeout(function(){ if(g("pe")) g("pe").textContent=""; },2000); } }
+
+function closePIN(){
+  g("pin").classList.remove("on");
+  var inp = g("pin-inp"); if(inp) inp.value = "";
+}
+
+function chkPIN(){
+  var inp = g("pin-inp");
+  var val = inp ? inp.value.trim() : "";
+  if(ST.pinVal && ST.pinVal(val)){
+    closePIN();
+    if(ST.pinCb) ST.pinCb(val);
+  } else {
+    g("pe").textContent = "Incorrect PIN. Try again.";
+    if(inp) inp.value = "";
+    setTimeout(function(){ if(g("pe")) g("pe").textContent=""; }, 2000);
+  }
+}
 
 // ── MODAL ─────────────────────────────────────────────
+
+// ══════════════════════════════════════════════════════
+// SECTION 25: MODAL
+// ══════════════════════════════════════════════════════
 function cm(){ g("mwrap").classList.remove("on"); }
 function cmOut(e){ if(e.target===g("mwrap")) cm(); }
 
 // ── INIT ──────────────────────────────────────────────
+
+// ══════════════════════════════════════════════════════
+// SECTION 26: INIT
+// ══════════════════════════════════════════════════════
 document.addEventListener("DOMContentLoaded",async function(){
   // Load categories FIRST (cGet is now available)
   DC = loadDC();
