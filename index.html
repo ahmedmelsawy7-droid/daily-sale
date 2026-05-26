@@ -772,7 +772,7 @@ async function rReport(){
     var sa={};
     dl.forEach(function(l){ if(l.data&&l.data.sales) Object.entries(l.data.sales).forEach(function(en){ sa[en[0]]=(sa[en[0]]||0)+(parseFloat(en[1])||0); }); });
     Object.entries(sa).filter(function(en){ return en[1]>0; }).forEach(function(en){
-      h+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bdr);font-size:13px;"><span style="color:var(--sub);">'+en[0]+'</span><span style="font-weight:700;">'+fmt(en[1])+'</span></div>';
+      h+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bdr);font-size:13px;"><span style="color:var(--sub);">'+catName("sales",en[0])+'</span><span style="font-weight:700;">'+fmt(en[1])+'</span></div>';
     });
     h+='<div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:800;color:var(--G);"><span>Total Sales</span><span>'+fmt(s)+' OMR</span></div>';
     // Fixed
@@ -781,7 +781,7 @@ async function rReport(){
       Object.entries(md.fixed||{}).filter(function(en){ return en[1]>0; }).forEach(function(en){
         var ip=(ms["f_"+en[0]]||"pending")==="paid";
         h+='<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bdr);font-size:13px;">'
-          +'<span style="color:var(--sub);">'+en[0]+'</span>'
+          +'<span style="color:var(--sub);">'+ catName("fixed",en[0]) +'</span>'
           +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-weight:700;">'+fmt(parseFloat(en[1]))+'</span>'
           +'<span class="bdg '+(ip?"bdg-g":"bdg-a")+'">'+(ip?"✅ Paid":"⏳ Pending")+'</span></div></div>';
       });
@@ -792,7 +792,7 @@ async function rReport(){
       Object.entries(md.comm||{}).filter(function(en){ return en[1]>0; }).forEach(function(en){
         var ip=(ms["c_"+en[0]]||"pending")==="paid";
         h+='<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bdr);font-size:13px;">'
-          +'<span style="color:var(--sub);">'+en[0]+'</span>'
+          +'<span style="color:var(--sub);">'+ catName("comm",en[0]) +'</span>'
           +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-weight:700;">'+fmt(parseFloat(en[1]))+'</span>'
           +'<span class="bdg '+(ip?"bdg-g":"bdg-a")+'">'+(ip?"✅":"⏳")+'</span></div></div>';
       });
@@ -804,7 +804,7 @@ async function rReport(){
         var ip=(ms["o_"+en[0]]||"pending")==="paid"; var note=md.other[en[0]+"_note"]||"";
         h+='<div style="padding:6px 0;border-bottom:1px solid var(--bdr);font-size:13px;">'
           +'<div style="display:flex;align-items:center;justify-content:space-between;">'
-          +'<span style="color:var(--sub);">'+en[0]+'</span>'
+          +'<span style="color:var(--sub);">'+ catName("other",en[0]) +'</span>'
           +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-weight:700;">'+fmt(parseFloat(en[1]))+'</span>'
           +'<span class="bdg '+(ip?"bdg-g":"bdg-a")+'">'+(ip?"✅":"⏳")+'</span></div></div>';
         if(note) h+='<div style="font-size:11px;color:var(--sub);margin-top:3px;">Note: '+esc(note)+'</div>';
