@@ -775,6 +775,16 @@ async function rReport(){
       h+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bdr);font-size:13px;"><span style="color:var(--sub);">'+catName("sales",en[0])+'</span><span style="font-weight:700;">'+fmt(en[1])+'</span></div>';
     });
     h+='<div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:800;color:var(--G);"><span>Total Sales</span><span>'+fmt(s)+' OMR</span></div>';
+    // Daily Expenses breakdown
+    if(e>0){
+      h+='<div class="sec">💸 Daily Expenses</div>';
+      var expAgg={};
+      dl.forEach(function(l){ if(l.data&&l.data.exp) Object.entries(l.data.exp).forEach(function(en){ expAgg[en[0]]=(expAgg[en[0]]||0)+(parseFloat(en[1])||0); }); });
+      Object.entries(expAgg).filter(function(en){ return en[1]>0; }).forEach(function(en){
+        h+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bdr);font-size:13px;"><span style="color:var(--sub);">'+catName("exp",en[0])+'</span><span style="font-weight:700;">'+fmt(en[1])+'</span></div>';
+      });
+      h+='<div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:800;color:var(--R);"><span>Total Expenses</span><span>'+fmt(e)+' OMR</span></div>';
+    }
     // Fixed
     if(f>0){
       h+='<div class="sec">Fixed Costs</div>';
