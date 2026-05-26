@@ -387,14 +387,14 @@ function rDaily(){
   h+='<input type="date" value="'+ST.dDate+'" onchange="chDate(this.value)" style="background:var(--sur);border:1px solid var(--bdr);border-radius:8px;color:var(--tx);font-family:inherit;font-size:13px;padding:6px 10px;outline:none;"/>';
   h+='</div>';
   h+='<div class="sec">📈 Sales</div>';
-  DC.sales.forEach(function(k){
-    var v=(ST.dVals.sales||{})[k]||"";
-    h+='<div class="irow"><span class="irl">'+k+'</span><input type="number" inputmode="decimal" class="inum" id="si-'+k.replace(/ /g,"_")+'" placeholder="0.000" value="'+(v||"")+'" oninput="updS()"/></div>';
+  DC.sales.forEach(function(cat){
+    var v=(ST.dVals.sales||{})[cat.k]||"";
+    h+='<div class="irow"><span class="irl">'+cat.n+'</span><input type="number" inputmode="decimal" class="inum" id="si-'+cat.k+'" placeholder="0.000" value="'+( v||"")+'" oninput="updS()"/></div>';
   });
   h+='<div class="sec" style="margin-top:4px;">💸 Expenses</div>';
-  DC.exp.forEach(function(k){
-    var v=(ST.dVals.exp||{})[k]||"";
-    h+='<div class="irow"><span class="irl">'+k+'</span><input type="number" inputmode="decimal" class="inum" id="ei-'+k.replace(/ /g,"_")+'" placeholder="0.000" value="'+(v||"")+'" oninput="updS()"/></div>';
+  DC.exp.forEach(function(cat){
+    var v=(ST.dVals.exp||{})[cat.k]||"";
+    h+='<div class="irow"><span class="irl">'+cat.n+'</span><input type="number" inputmode="decimal" class="inum" id="ei-'+cat.k+'" placeholder="0.000" value="'+( v||"")+'" oninput="updS()"/></div>';
   });
   h+='</div>';
   h+='<button class="btn bg" onclick="saveDay()">💾 Save Daily Entry</button>';
@@ -456,37 +456,37 @@ function rMonthly(){
   var h=mSel(ST.mDate,"chMon");
   // Fixed
   h+='<div class="card"><div class="ctitle">📌 Fixed Costs</div>';
-  DC.fixed.forEach(function(k){
-    var v=(ST.mVals.fixed||{})[k]||""; var st=ST.mSts["f_"+k]||"pending";
-    var si="mf-"+k.replace(/ /g,"_"); var bi="sf-"+k.replace(/ /g,"_");
-    h+='<div class="srow"><span style="flex:1;font-size:14px;">'+k+'</span>'
+  DC.fixed.forEach(function(cat){
+    var v=(ST.mVals.fixed||{})[cat.k]||""; var st=ST.mSts["f_"+cat.k]||"pending";
+    var si="mf-"+cat.k; var bi="sf-"+cat.k;
+    h+='<div class="srow"><span style="flex:1;font-size:14px;">'+cat.n+'</span>'
       +'<input type="number" inputmode="decimal" class="inum" id="'+si+'" placeholder="0.000" value="'+(v||"")+'" style="width:110px;"/>'
-      +'<button class="sbtn '+(st==="paid"?"sp":"sn")+'" id="'+bi+'" data-key="f_'+k+'" data-status="'+st+'" onclick="togSts(this)">'+(st==="paid"?"✅ Paid":"⏳ Pending")+'</button>'
+      +'<button class="sbtn '+(st==="paid"?"sp":"sn")+'" id="'+bi+'" data-key="f_'+cat.k+'" data-status="'+st+'" onclick="togSts(this)">'+(st==="paid"?"✅ Paid":"⏳ Pending")+'</button>'
       +'</div>';
   });
   h+='</div>';
   // Commission
   h+='<div class="card"><div class="ctitle">📱 App Commission</div>';
-  DC.comm.forEach(function(k){
-    var v=(ST.mVals.comm||{})[k]||""; var st=ST.mSts["c_"+k]||"pending";
-    var si="mc-"+k.replace(/ /g,"_"); var bi="sc-"+k.replace(/ /g,"_");
-    h+='<div class="srow"><span style="flex:1;font-size:14px;">'+k+'</span>'
+  DC.comm.forEach(function(cat){
+    var v=(ST.mVals.comm||{})[cat.k]||""; var st=ST.mSts["c_"+cat.k]||"pending";
+    var si="mc-"+cat.k; var bi="sc-"+cat.k;
+    h+='<div class="srow"><span style="flex:1;font-size:14px;">'+cat.n+'</span>'
       +'<input type="number" inputmode="decimal" class="inum" id="'+si+'" placeholder="0.000" value="'+(v||"")+'" style="width:110px;"/>'
-      +'<button class="sbtn '+(st==="paid"?"sp":"sn")+'" id="'+bi+'" data-key="c_'+k+'" data-status="'+st+'" onclick="togSts(this)">'+(st==="paid"?"✅ Paid":"⏳ Pending")+'</button>'
+      +'<button class="sbtn '+(st==="paid"?"sp":"sn")+'" id="'+bi+'" data-key="c_'+cat.k+'" data-status="'+st+'" onclick="togSts(this)">'+(st==="paid"?"✅ Paid":"⏳ Pending")+'</button>'
       +'</div>';
   });
   h+='</div>';
   // Other
   h+='<div class="card"><div class="ctitle">🔧 Other Expenses</div>';
-  DC.other.forEach(function(k){
-    var v=(ST.mVals.other||{})[k]||""; var note=(ST.mVals.other||{})[k+"_note"]||""; var st=ST.mSts["o_"+k]||"pending";
-    var si="mo-"+k.replace(/ /g,"_"); var bi="so-"+k.replace(/ /g,"_");
+  DC.other.forEach(function(cat){
+    var v=(ST.mVals.other||{})[cat.k]||""; var note=(ST.mVals.other||{})[cat.k+"_note"]||""; var st=ST.mSts["o_"+cat.k]||"pending";
+    var si="mo-"+cat.k; var bi="so-"+cat.k;
     h+='<div style="padding:8px 0;border-bottom:1px solid var(--bdr);">'
-      +'<div class="srow" style="padding:0;border:none;"><span style="flex:1;font-size:14px;">'+k+'</span>'
-      +'<input type="number" inputmode="decimal" class="inum" id="'+si+'" placeholder="0.000" value="'+(v||"")+'" style="width:110px;"/>'
-      +'<button class="sbtn '+(st==="paid"?"sp":"sn")+'" id="'+bi+'" data-key="o_'+k+'" data-status="'+st+'" onclick="togSts(this)">'+(st==="paid"?"✅ Paid":"⏳ Pending")+'</button>'
-      +'</div>'
-      +'<input type="text" class="note-i" id="no-'+k.replace(/ /g,"_")+'" placeholder="Note / reason..." value="'+esc(note)+'">'
+    h+='<div style="padding:8px 0;border-bottom:1px solid var(--bdr);">'
+      +'<div class="srow" style="padding:0;border:none;"><span style="flex:1;font-size:14px;">'+cat.n+'</span>'
+      +'<input type="number" inputmode="decimal" class="inum" id="'+si+'" placeholder="0.000" value="'+( v||"")+'" style="width:110px;"/>'
+      +'<button class="sbtn '+(st==="paid"?"sp":"sn")+'" id="'+bi+'" data-key="o_'+cat.k+'" data-status="'+st+'" onclick="togSts(this)">'+(st==="paid"?"✅ Paid":"⏳ Pending")+'</button>'
+      +'<input type="text" class="note-i" id="no-'+cat.k+'" placeholder="Note / reason..." value="'+esc(note)+'">'
       +'</div>';
   });
   h+='</div>';
