@@ -277,12 +277,31 @@ var DC_DEF = {
 // Active categories - initialized in DOMContentLoaded
 var DC = {};
 function loadDC(){
+  // Load from localStorage cache first (fast)
   var saved = cGet("dc_cats");
   if(saved) return saved;
   return JSON.parse(JSON.stringify(DC_DEF));
 }
+async function loadDCFromSupabase(){
+  // Load from Supabase and update all devices
+  var d = await sb("/rest/v1/settings?key=eq.dc_cats&select=value");
+  if(d && d[0] && d[0].value){
+    try{
+      var remote = JSON.parse(d[0].value);
+      if(remote && remote.sales){
+        DC = remote;
+        cSet("dc_cats", DC);
+        console.log("[DC] Loaded from Supabase");
+      }
+    }catch(e){ console.error("[DC] Parse error", e); }
+  }
+}
 function saveDC(){
   cSet("dc_cats", DC);
+  // Also save to Supabase so all devices get same categories
+  sb("/rest/v1/settings?on_conflict=key","POST",
+    {key:"dc_cats", value:JSON.stringify(DC)},
+    {"Prefer":"resolution=merge-duplicates,return=minimal"});
 }
 // Get name by key
 function catName(type, key){
@@ -1068,7 +1087,9 @@ async function doDelB(id,name){
   await sb("/rest/v1/month_logs?branch_id=eq."+id,"DELETE");
   await sb("/rest/v1/branches?id=eq."+id,"DELETE");
   cDel(id+"_cnt"); toast("Branch deleted","#ef4444");
-  await loadBranches(); rITBranches();
+  await loadBranches();
+  await loadDCFromSupabase();
+  console.log("[INIT] DC:", Object.keys(DC), "sales:", DC.sales&&DC.sales.length); rITBranches();
 }
 
 async function addB(){
@@ -1437,7 +1458,6 @@ function cmOut(e){ if(e.target===g("mwrap")) cm(); }
 document.addEventListener("DOMContentLoaded",async function(){
   // Load categories FIRST (cGet is now available)
   DC = loadDC();
-  console.log("[INIT] DC loaded:", Object.keys(DC), "sales:", DC.sales&&DC.sales.length);
   var sm=cGet("pin_mgr"); var si=cGet("pin_it");
   if(sm&&sm.length===4) PINS.mgr=sm;
   if(si&&si.length===4) PINS.it=si;
