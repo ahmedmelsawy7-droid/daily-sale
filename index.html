@@ -219,8 +219,8 @@ var DC_DEF = {
     {k:"maint",n:"Maintenance"},{k:"emerg",n:"Emergency"},{k:"other",n:"Other"}
   ]
 };
-// Active categories (loaded from cache or defaults)
-var DC = loadDC();
+// Active categories - initialized in DOMContentLoaded
+var DC = {};
 function loadDC(){
   var saved = cGet("dc_cats");
   if(saved) return saved;
@@ -314,11 +314,17 @@ async function sb(path,method,body,extra){
 async function loadBranches(){
   var bs=g("bs-sub"); if(bs) bs.textContent="Connecting...";
   var d=await sb("/rest/v1/branches?select=*&order=sort_order.asc,id.asc");
-  if(d&&d.length){
+  if(d && d.length){
+    // Supabase success - update local cache
     ST.branches=d.map(function(b){ return {id:b.id,name:b.name||"Branch",icon:b.icon||"🏪",pass:b.pass||"",sort:b.sort_order||0}; });
-    cSet("branches",ST.branches);
+    cSet("branches", ST.branches);
+  } else if(d===null){
+    // Connection failed - use cache
+    ST.branches = cGet("branches")||[];
+    if(bs) bs.textContent = "⚠️ Offline mode — using cached data";
   } else {
-    ST.branches=cGet("branches")||[];
+    // Empty array - no branches yet
+    ST.branches = [];
   }
   renderBS();
 }
@@ -415,18 +421,23 @@ async function chDate(d){
 
 var _sv=false;
 async function saveDay(){
+  // Guard: prevent double-save and null branch
   if(_sv){ toast("Saving...","#3b82f6"); return; }
+  if(!ST.branch){ toast("No branch selected","#ef4444"); return; }
   _sv=true;
   var v={sales:{},exp:{}};
   DC.sales.forEach(function(cat){ var el=g("si-"+cat.k); v.sales[cat.k]=parseFloat(el&&el.value)||0; });
   DC.exp.forEach(function(cat){ var el=g("ei-"+cat.k); v.exp[cat.k]=parseFloat(el&&el.value)||0; });
   var r=await sb("/rest/v1/day_logs?on_conflict=branch_id,date","POST",
-    {branch_id:ST.branch.id,date:ST.dDate,data:v},
+    {branch_id:ST.branch.id, date:ST.dDate, data:v},
     {"Prefer":"resolution=merge-duplicates,return=minimal"});
   _sv=false;
   if(r!==null){
-    ST.dVals=v; var c=cGet(ST.branch.id+"_cnt")||0; cSet(ST.branch.id+"_cnt",c+1);
-    toast("Saved ✓","#10b981"); empTab2("records");
+    ST.dVals=v;
+    var c=cGet(ST.branch.id+"_cnt")||0;
+    cSet(ST.branch.id+"_cnt", c+1);
+    toast("Saved ✓","#10b981");
+    empTab2("records");
   } else {
     toast("Save failed — check connection","#ef4444");
   }
@@ -494,24 +505,36 @@ async function chMon(m){
 }
 
 async function saveMon(){
+  // Guard against null branch
+  if(!ST.branch){ toast("No branch selected","#ef4444"); return; }
   var v={fixed:{},comm:{},other:{}}; var sts={};
   DC.fixed.forEach(function(cat){ var el=g("mf-"+cat.k); v.fixed[cat.k]=parseFloat(el&&el.value)||0; var sb2=g("sf-"+cat.k); if(sb2) sts["f_"+cat.k]=sb2.dataset.status||"pending"; });
   DC.comm.forEach(function(cat){ var el=g("mc-"+cat.k); v.comm[cat.k]=parseFloat(el&&el.value)||0; var sb2=g("sc-"+cat.k); if(sb2) sts["c_"+cat.k]=sb2.dataset.status||"pending"; });
   DC.other.forEach(function(cat){ var el=g("mo-"+cat.k); v.other[cat.k]=parseFloat(el&&el.value)||0; var el2=g("no-"+cat.k); if(el2) v.other[cat.k+"_note"]=el2.value||""; var sb2=g("so-"+cat.k); if(sb2) sts["o_"+cat.k]=sb2.dataset.status||"pending"; });
   var r=await sb("/rest/v1/month_logs?on_conflict=branch_id,month","POST",
-    {branch_id:ST.branch.id,month:ST.mDate,data:v,status:sts},
+    {branch_id:ST.branch.id, month:ST.mDate, data:v, status:sts},
     {"Prefer":"resolution=merge-duplicates,return=minimal"});
-  if(r!==null){ ST.mVals=v; ST.mSts=sts; toast("Monthly saved ✓","#10b981"); empTab2("records"); }
-  else toast("Save failed","#ef4444");
+  if(r!==null){
+    ST.mVals=v; ST.mSts=sts;
+    toast("Monthly saved ✓","#10b981");
+    empTab2("records");
+  } else {
+    toast("Save failed — check connection","#ef4444");
+  }
 }
 
 // ══════════════════════════════════════════════════════
 // EMPLOYEE — RECORDS
 // ══════════════════════════════════════════════════════
 async function rRecords(){
+  if(!ST.branch){ return; }
   g("e-body").innerHTML='<div class="loader"><div class="spin"></div>Loading...</div>';
   var d=await sb("/rest/v1/day_logs?branch_id=eq."+ST.branch.id+"&select=date,data&order=date.desc&limit=90");
-  if(!d||!d.length){ g("e-body").innerHTML='<div class="loader">No records yet</div>'; return; }
+  if(d===null){
+    g("e-body").innerHTML='<div class="loader" style="color:var(--R);">⚠️ Connection failed<br/><button class="btn bh" style="margin-top:12px;" onclick="rRecords()">Retry</button></div>';
+    return;
+  }
+  if(!d.length){ g("e-body").innerHTML='<div class="loader">No records yet</div>'; return; }
   cSet(ST.branch.id+"_cnt",d.length);
   var h='<div class="card"><div class="ctitle">📋 Daily Records ('+d.length+')</div>';
   d.forEach(function(log){
@@ -541,9 +564,10 @@ async function editLog(date){
 // EMPLOYEE — NOTES
 // ══════════════════════════════════════════════════════
 async function rNotes(){
+  if(!ST.branch) return;
   g("e-body").innerHTML='<div class="loader"><div class="spin"></div>Loading...</div>';
   var d=await sb("/rest/v1/settings?key=eq.notes_"+ST.branch.id+"&select=value");
-  var notes=[]; if(d&&d[0]){ try{ notes=JSON.parse(d[0].value)||[]; }catch(e){} }
+  var notes=[]; if(d&&d[0]){ try{ notes=JSON.parse(d[0].value)||[]; }catch(e){ notes=[]; } }
   var h='<div class="card"><div class="ctitle">💬 Send Note to Manager</div>'
     +'<textarea id="note-t" class="inp" rows="3" placeholder="Type your note here..."></textarea>'
     +'<button class="btn bp" style="margin-top:10px;" onclick="sendNote()">📤 Send Note</button>'
@@ -562,6 +586,7 @@ async function rNotes(){
 }
 
 async function sendNote(){
+  if(!ST.branch){ toast("No branch selected","#ef4444"); return; }
   var inp=g("note-t"); if(!inp||!inp.value.trim()){ toast("Enter a note first","#ef4444"); return; }
   var d=await sb("/rest/v1/settings?key=eq.notes_"+ST.branch.id+"&select=value");
   var notes=[]; if(d&&d[0]){ try{ notes=JSON.parse(d[0].value)||[]; }catch(e){} }
@@ -1214,6 +1239,8 @@ function cmOut(e){ if(e.target===g("mwrap")) cm(); }
 
 // ── INIT ──────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded",async function(){
+  // Load categories FIRST (cGet is now available)
+  DC = loadDC();
   var sm=cGet("pin_mgr"); var si=cGet("pin_it");
   if(sm&&sm.length===4) PINS.mgr=sm;
   if(si&&si.length===4) PINS.it=si;
